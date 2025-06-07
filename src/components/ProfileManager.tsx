@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Lock, LockOpen, Star, Trash2, Edit, Plus } from 'lucide-react';
 import { Profile, ProfileImage } from '@/types/Profile';
+import { compressImage } from '@/utils/imageUtils';
 
 interface ProfileManagerProps {
   profile: Profile;
@@ -13,17 +14,20 @@ const ProfileManager = ({ profile, onUpdate, onDelete }: ProfileManagerProps) =>
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editDescription, setEditDescription] = useState(profile.description);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
+    setIsUploading(true);
+
+    for (const file of Array.from(files)) {
+      try {
+        const compressedUrl = await compressImage(file);
         const newImage: ProfileImage = {
           id: Date.now().toString() + Math.random(),
-          url: event.target?.result as string,
+          url: compressedUrl,
           isLocked: false,
           isCover: profile.images.length === 0
         };
@@ -32,9 +36,12 @@ const ProfileManager = ({ profile, onUpdate, onDelete }: ProfileManagerProps) =>
           ...profile,
           images: [...profile.images, newImage]
         });
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch (error) {
+        console.error('Failed to process image:', error);
+      }
+    }
+    
+    setIsUploading(false);
   };
 
   const toggleImageLock = (imageId: string) => {
@@ -128,15 +135,16 @@ const ProfileManager = ({ profile, onUpdate, onDelete }: ProfileManagerProps) =>
 
       {/* Image Upload */}
       <div className="mb-6">
-        <label className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg cursor-pointer hover:from-purple-700 hover:to-blue-700 transition-all duration-200 w-fit">
+        <label className={`flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg cursor-pointer hover:from-purple-700 hover:to-blue-700 transition-all duration-200 w-fit ${isUploading ? 'opacity-50' : ''}`}>
           <Plus size={18} />
-          Add Images
+          {isUploading ? 'Processing...' : 'Add Images'}
           <input
             type="file"
             multiple
             accept="image/*"
             onChange={handleImageUpload}
             className="hidden"
+            disabled={isUploading}
           />
         </label>
       </div>

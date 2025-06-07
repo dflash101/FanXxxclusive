@@ -4,6 +4,7 @@ import { LogOut, Plus } from 'lucide-react';
 import { Profile } from '@/types/Profile';
 import ProfileManager from './ProfileManager';
 import CreateProfile from './CreateProfile';
+import { safeLocalStorageGet, safeLocalStorageSet } from '@/utils/imageUtils';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -18,16 +19,14 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   }, []);
 
   const loadProfiles = () => {
-    const savedProfiles = localStorage.getItem('profiles');
-    if (savedProfiles) {
-      setProfiles(JSON.parse(savedProfiles));
-    }
+    const savedProfiles = safeLocalStorageGet('profiles') || [];
+    setProfiles(savedProfiles);
   };
 
   const handleCreateProfile = (newProfile: Profile) => {
     const updatedProfiles = [...profiles, newProfile];
     setProfiles(updatedProfiles);
-    localStorage.setItem('profiles', JSON.stringify(updatedProfiles));
+    safeLocalStorageSet('profiles', updatedProfiles);
     setShowCreateProfile(false);
   };
 
@@ -36,13 +35,13 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       profile.id === updatedProfile.id ? updatedProfile : profile
     );
     setProfiles(updatedProfiles);
-    localStorage.setItem('profiles', JSON.stringify(updatedProfiles));
+    safeLocalStorageSet('profiles', updatedProfiles);
   };
 
   const handleDeleteProfile = (profileId: string) => {
     const updatedProfiles = profiles.filter(profile => profile.id !== profileId);
     setProfiles(updatedProfiles);
-    localStorage.setItem('profiles', JSON.stringify(updatedProfiles));
+    safeLocalStorageSet('profiles', updatedProfiles);
   };
 
   return (

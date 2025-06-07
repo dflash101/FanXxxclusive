@@ -1,7 +1,9 @@
+
 import { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { Profile, ProfileImage } from '@/types/Profile';
 import { toast } from 'sonner';
+import { compressImage, safeLocalStorageSet } from '@/utils/imageUtils';
 
 interface CreateProfileProps {
   onClose: () => void;
@@ -12,31 +14,39 @@ const CreateProfile = ({ onClose, onCreate }: CreateProfileProps) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<ProfileImage[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
+    setIsUploading(true);
+    
+    for (const file of Array.from(files)) {
+      try {
+        const compressedUrl = await compressImage(file);
         const newImage: ProfileImage = {
           id: Date.now().toString() + Math.random(),
-          url: event.target?.result as string,
+          url: compressedUrl,
           isLocked: false,
           isCover: images.length === 0
         };
 
         setImages(prev => [...prev, newImage]);
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch (error) {
+        console.error('Failed to process image:', error);
+        toast.error('Failed to process image');
+      }
+    }
+    
+    setIsUploading(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name.trim() || images.length === 0) {
+      toast.error('Please provide a name and at least one image');
       return;
     }
 
@@ -48,17 +58,26 @@ const CreateProfile = ({ onClose, onCreate }: CreateProfileProps) => {
       createdAt: new Date().toISOString()
     };
 
-    onCreate(newProfile);
+    // Get existing profiles
+    const existingProfiles = JSON.parse(localStorage.getItem('profiles') || '[]');
+    const updatedProfiles = [...existingProfiles, newProfile];
+
+    // Try to save to localStorage
+    const saved = safeLocalStorageSet('profiles', updatedProfiles);
     
-    // Show success notification
-    toast.success('Profile created successfully!', {
-      description: `${name} has been added to the gallery.`,
-    });
-    
-    // Auto-close the form
-    setTimeout(() => {
-      onClose();
-    }, 1000);
+    if (saved) {
+      onCreate(newProfile);
+      toast.success('Profile created successfully!', {
+        description: `${name} has been added to the gallery.`,
+      });
+      
+      // Auto-close after success
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } else {
+      toast.error('Failed to save profile. Try using smaller images or fewer images.');
+    }
   };
 
   return (
@@ -110,15 +129,18 @@ const CreateProfile = ({ onClose, onCreate }: CreateProfileProps) => {
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Images * (First image will be the cover)
             </label>
-            <label className="flex items-center justify-center gap-2 px-6 py-4 bg-gray-700/50 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700/70 transition-colors">
+            <label className={`flex items-center justify-center gap-2 px-6 py-4 bg-gray-700/50 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700/70 transition-colors ${isUploading ? 'opacity-50' : ''}`}>
               <Plus size={20} className="text-gray-400" />
-              <span className="text-gray-400">Choose images to upload</span>
+              <span className="text-gray-400">
+                {isUploading ? 'Processing images...' : 'Choose images to upload'}
+              </span>
               <input
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleImageUpload}
                 className="hidden"
+                disabled={isUploading}
               />
             </label>
           </div>
@@ -171,7 +193,7 @@ const CreateProfile = ({ onClose, onCreate }: CreateProfileProps) => {
             </button>
             <button
               type="submit"
-              disabled={!name.trim() || images.length === 0}
+              disabled={!name.trim() || images.length === 0 || isUploading}
               className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Create Profile

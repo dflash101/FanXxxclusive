@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLogin from '@/components/AdminLogin';
@@ -24,6 +23,7 @@ const Admin = () => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    // Only remove authentication data, keep profiles and unlocked profiles
     localStorage.removeItem('adminAuth');
     navigate('/');
   };

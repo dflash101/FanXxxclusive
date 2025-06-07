@@ -3,28 +3,39 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ProfileCard from '@/components/ProfileCard';
 import { Profile } from '@/types/Profile';
+import { safeLocalStorageGet, safeLocalStorageSet } from '@/utils/imageUtils';
 
 const Index = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [unlockedProfiles, setUnlockedProfiles] = useState<string[]>([]);
 
   useEffect(() => {
-    const savedProfiles = localStorage.getItem('profiles');
-    const savedUnlocked = localStorage.getItem('unlockedProfiles');
+    loadData();
     
-    if (savedProfiles) {
-      setProfiles(JSON.parse(savedProfiles));
-    }
+    // Add window focus listener to refresh data when returning from admin
+    const handleFocus = () => {
+      loadData();
+    };
     
-    if (savedUnlocked) {
-      setUnlockedProfiles(JSON.parse(savedUnlocked));
-    }
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
+
+  const loadData = () => {
+    const savedProfiles = safeLocalStorageGet('profiles') || [];
+    const savedUnlocked = safeLocalStorageGet('unlockedProfiles') || [];
+    
+    console.log('Loading profiles:', savedProfiles);
+    console.log('Loading unlocked:', savedUnlocked);
+    
+    setProfiles(savedProfiles);
+    setUnlockedProfiles(savedUnlocked);
+  };
 
   const handleUnlockProfile = (profileId: string) => {
     const newUnlocked = [...unlockedProfiles, profileId];
     setUnlockedProfiles(newUnlocked);
-    localStorage.setItem('unlockedProfiles', JSON.stringify(newUnlocked));
+    safeLocalStorageSet('unlockedProfiles', newUnlocked);
   };
 
   return (
@@ -35,12 +46,20 @@ const Index = () => {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
             Profile Gallery
           </h1>
-          <Link 
-            to="/admin" 
-            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
-          >
-            Admin Access
-          </Link>
+          <div className="flex gap-3">
+            <button
+              onClick={loadData}
+              className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
+            >
+              Refresh
+            </button>
+            <Link 
+              to="/admin" 
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
+            >
+              Admin Access
+            </Link>
+          </div>
         </div>
       </header>
 
