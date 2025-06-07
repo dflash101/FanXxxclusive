@@ -74,11 +74,23 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <ProfileManager
-          profiles={profiles}
-          onUpdateProfile={handleUpdateProfile}
-          onDeleteProfile={handleDeleteProfile}
-        />
+        {profiles.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg mb-4">No profiles created yet</p>
+            <p className="text-gray-500">Click "Create Profile" to get started</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {profiles.map((profile) => (
+              <ProfileManager
+                key={profile.id}
+                profile={profile}
+                onUpdate={handleUpdateProfile}
+                onDelete={handleDeleteProfile}
+              />
+            ))}
+          </div>
+        )}
       </main>
 
       {/* Create Profile Modal */}
