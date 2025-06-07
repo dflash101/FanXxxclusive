@@ -1,7 +1,7 @@
-
 import { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { Profile, ProfileImage } from '@/types/Profile';
+import { toast } from 'sonner';
 
 interface CreateProfileProps {
   onClose: () => void;
@@ -49,6 +49,16 @@ const CreateProfile = ({ onClose, onCreate }: CreateProfileProps) => {
     };
 
     onCreate(newProfile);
+    
+    // Show success notification
+    toast.success('Profile created successfully!', {
+      description: `${name} has been added to the gallery.`,
+    });
+    
+    // Auto-close the form
+    setTimeout(() => {
+      onClose();
+    }, 1000);
   };
 
   return (
