@@ -44,7 +44,7 @@ const Index = () => {
       <header className="border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-            Profile Gallery
+            FanXxxclusive
           </h1>
           <div className="flex gap-3">
             <button

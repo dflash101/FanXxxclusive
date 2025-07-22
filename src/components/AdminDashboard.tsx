@@ -50,7 +50,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       <header className="border-b border-gray-800 bg-black/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-            Admin Dashboard
+            FanXxxclusive Admin
           </h1>
           <div className="flex gap-3">
             <button
