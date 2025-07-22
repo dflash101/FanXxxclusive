@@ -15,6 +15,7 @@ interface PaymentModalProps {
 }
 
 const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purchaseType }: PaymentModalProps) => {
+  console.log('PaymentModal component loaded', { isOpen, profile, amount, purchaseType });
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -191,3 +192,4 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purc
 };
 
 export default PaymentModal;
+export { PaymentModal };
