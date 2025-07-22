@@ -16,11 +16,11 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
     e.preventDefault();
     
     // Simple authentication - in a real app, this would be more secure
-    if (username === 'admin' && password === 'admin123') {
+    if (username === 'admin' && password === 'Admin123OF') {
       onLogin(true);
       setError('');
     } else {
-      setError('Invalid credentials. Use admin/admin123');
+      setError('Invalid credentials');
       onLogin(false);
     }
   };
@@ -90,11 +90,6 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
           </button>
         </form>
 
-        <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
-          <p className="text-xs text-gray-400 text-center">
-            Demo credentials: admin / admin123
-          </p>
-        </div>
       </div>
     </div>
   );

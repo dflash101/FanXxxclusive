@@ -9,7 +9,12 @@ export interface ProfileImage {
 export interface Profile {
   id: string;
   name: string;
-  description: string;
+  age?: number;
+  location?: string;
+  bio?: string;
+  description?: string;
   images: ProfileImage[];
-  createdAt: string;
+  isUnlocked?: boolean;
+  unlockPrice?: number;
+  createdAt?: string;
 }

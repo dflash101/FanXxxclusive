@@ -2,40 +2,43 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ProfileCard from '@/components/ProfileCard';
+import PaymentModal from '@/components/PaymentModal';
 import { Profile } from '@/types/Profile';
+import { useSupabaseProfiles } from '@/hooks/useSupabaseProfiles';
 import { safeLocalStorageGet, safeLocalStorageSet } from '@/utils/imageUtils';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const { profiles, loading } = useSupabaseProfiles();
   const [unlockedProfiles, setUnlockedProfiles] = useState<string[]>([]);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedProfileId, setSelectedProfileId] = useState<string>('');
+  const { toast } = useToast();
 
   useEffect(() => {
-    loadData();
-    
-    // Add window focus listener to refresh data when returning from admin
-    const handleFocus = () => {
-      loadData();
-    };
-    
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    // Load unlocked profiles from localStorage
+    const savedUnlocked = safeLocalStorageGet('unlockedProfiles') || [];
+    setUnlockedProfiles(savedUnlocked);
   }, []);
 
-  const loadData = () => {
-    const savedProfiles = safeLocalStorageGet('profiles') || [];
-    const savedUnlocked = safeLocalStorageGet('unlockedProfiles') || [];
-    
-    console.log('Loading profiles:', savedProfiles);
-    console.log('Loading unlocked:', savedUnlocked);
-    
-    setProfiles(savedProfiles);
-    setUnlockedProfiles(savedUnlocked);
+  const handleUnlockProfile = (profileId: string) => {
+    setSelectedProfileId(profileId);
+    setPaymentModalOpen(true);
   };
 
-  const handleUnlockProfile = (profileId: string) => {
-    const newUnlocked = [...unlockedProfiles, profileId];
-    setUnlockedProfiles(newUnlocked);
-    safeLocalStorageSet('unlockedProfiles', newUnlocked);
+  const handlePaymentSuccess = (method: string) => {
+    if (selectedProfileId) {
+      const newUnlocked = [...unlockedProfiles, selectedProfileId];
+      setUnlockedProfiles(newUnlocked);
+      safeLocalStorageSet('unlockedProfiles', newUnlocked);
+      
+      toast({
+        title: "Payment Successful!",
+        description: `Profile unlocked using ${method === 'square' ? 'Square' : 'Trust Wallet'}`,
+        variant: "default",
+      });
+    }
+    setSelectedProfileId('');
   };
 
   return (
@@ -47,12 +50,6 @@ const Index = () => {
             FanXxxclusive
           </h1>
           <div className="flex gap-3">
-            <button
-              onClick={loadData}
-              className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
-            >
-              Refresh
-            </button>
             <Link 
               to="/admin" 
               className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
@@ -65,7 +62,12 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {profiles.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-gray-400 text-lg">Loading profiles...</p>
+          </div>
+        ) : profiles.length === 0 ? (
           <div className="text-center py-20">
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-12 max-w-md mx-auto border border-gray-700">
               <h2 className="text-2xl font-semibold text-gray-300 mb-4">No Profiles Yet</h2>
@@ -91,6 +93,13 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

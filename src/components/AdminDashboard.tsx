@@ -4,44 +4,68 @@ import { LogOut, Plus } from 'lucide-react';
 import { Profile } from '@/types/Profile';
 import ProfileManager from './ProfileManager';
 import CreateProfile from './CreateProfile';
-import { safeLocalStorageGet, safeLocalStorageSet } from '@/utils/imageUtils';
+import { useSupabaseProfiles } from '@/hooks/useSupabaseProfiles';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminDashboardProps {
   onLogout: () => void;
 }
 
 const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const { profiles, loading, createProfile, updateProfile, deleteProfile } = useSupabaseProfiles();
   const [showCreateProfile, setShowCreateProfile] = useState(false);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    loadProfiles();
-  }, []);
-
-  const loadProfiles = () => {
-    const savedProfiles = safeLocalStorageGet('profiles') || [];
-    setProfiles(savedProfiles);
+  const handleCreateProfile = async (newProfile: Profile) => {
+    try {
+      await createProfile(newProfile);
+      setShowCreateProfile(false);
+      toast({
+        title: "Success",
+        description: "Profile created successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create profile",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleCreateProfile = (newProfile: Profile) => {
-    const updatedProfiles = [...profiles, newProfile];
-    setProfiles(updatedProfiles);
-    safeLocalStorageSet('profiles', updatedProfiles);
-    setShowCreateProfile(false);
+  const handleUpdateProfile = async (updatedProfile: Profile) => {
+    try {
+      await updateProfile(updatedProfile);
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleUpdateProfile = (updatedProfile: Profile) => {
-    const updatedProfiles = profiles.map(profile => 
-      profile.id === updatedProfile.id ? updatedProfile : profile
-    );
-    setProfiles(updatedProfiles);
-    safeLocalStorageSet('profiles', updatedProfiles);
-  };
-
-  const handleDeleteProfile = (profileId: string) => {
-    const updatedProfiles = profiles.filter(profile => profile.id !== profileId);
-    setProfiles(updatedProfiles);
-    safeLocalStorageSet('profiles', updatedProfiles);
+  const handleDeleteProfile = async (profileId: string) => {
+    try {
+      await deleteProfile(profileId);
+      toast({
+        title: "Success",
+        description: "Profile deleted successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete profile",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -73,7 +97,12 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {profiles.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-gray-400 text-lg">Loading profiles...</p>
+          </div>
+        ) : profiles.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg mb-4">No profiles created yet</p>
             <p className="text-gray-500">Click "Create Profile" to get started</p>
