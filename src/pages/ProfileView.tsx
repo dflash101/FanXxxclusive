@@ -108,17 +108,17 @@ const ProfileView = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-        <div className="text-lg">Loading profile...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-lg text-white">Loading profile...</div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
+          <h1 className="text-2xl font-bold mb-4 text-white">Profile Not Found</h1>
           <Link to="/">
             <Button>Back to Gallery</Button>
           </Link>
@@ -132,11 +132,11 @@ const ProfileView = () => {
   const isFullyUnlocked = profile.isUnlocked || unlockedCount === totalPhotos;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/20 to-secondary/20">
+    <div className="min-h-screen bg-black">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <Link to="/">
-            <Button variant="outline" className="mb-4">
+            <Button variant="outline" className="mb-4 border-white text-white hover:bg-white hover:text-black">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Gallery
             </Button>
