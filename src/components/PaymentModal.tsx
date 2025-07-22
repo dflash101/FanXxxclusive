@@ -9,9 +9,12 @@ interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPaymentSuccess?: (method: string) => void;
+  profile?: any;
+  amount?: number;
+  purchaseType?: 'photo' | 'package';
 }
 
-const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }: PaymentModalProps) => {
+const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purchaseType }: PaymentModalProps) => {
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -79,7 +82,11 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess }: PaymentModalProps) 
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-2xl">Choose Payment Method</DialogTitle>
-              <DialogDescription>Select your preferred way to pay</DialogDescription>
+              <DialogDescription>
+                {purchaseType === 'photo' ? `Unlock single photo for $${amount?.toFixed(2)}` : 
+                 purchaseType === 'package' ? `Unlock all photos for $${amount?.toFixed(2)}` : 
+                 'Select your preferred way to pay'}
+              </DialogDescription>
             </div>
             <Button
               variant="ghost"

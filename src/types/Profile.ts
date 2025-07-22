@@ -16,5 +16,7 @@ export interface Profile {
   images: ProfileImage[];
   isUnlocked?: boolean;
   unlockPrice?: number;
+  photoPrice?: number;
+  packagePrice?: number;
   createdAt?: string;
 }

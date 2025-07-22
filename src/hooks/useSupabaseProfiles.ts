@@ -36,6 +36,8 @@ export const useSupabaseProfiles = () => {
           images: profileImages,
           isUnlocked: profile.is_unlocked || false,
           unlockPrice: Number(profile.unlock_price) || 19.99,
+          photoPrice: Number(profile.photo_price) || 4.99,
+          packagePrice: Number(profile.package_price) || 19.99,
           createdAt: profile.created_at
         };
       });
@@ -63,7 +65,9 @@ export const useSupabaseProfiles = () => {
           bio: profile.bio || profile.description,
           image_urls: imageUrls,
           is_unlocked: profile.isUnlocked || false,
-          unlock_price: profile.unlockPrice || 19.99
+          unlock_price: profile.unlockPrice || 19.99,
+          photo_price: profile.photoPrice || 4.99,
+          package_price: profile.packagePrice || 19.99
         })
         .select()
         .single();
@@ -87,6 +91,8 @@ export const useSupabaseProfiles = () => {
         images: profileImages,
         isUnlocked: data.is_unlocked || false,
         unlockPrice: Number(data.unlock_price) || 19.99,
+        photoPrice: Number(data.photo_price) || 4.99,
+        packagePrice: Number(data.package_price) || 19.99,
         createdAt: data.created_at
       };
 
@@ -112,7 +118,9 @@ export const useSupabaseProfiles = () => {
           bio: profile.bio || profile.description,
           image_urls: imageUrls,
           is_unlocked: profile.isUnlocked || false,
-          unlock_price: profile.unlockPrice || 19.99
+          unlock_price: profile.unlockPrice || 19.99,
+          photo_price: profile.photoPrice || 4.99,
+          package_price: profile.packagePrice || 19.99
         })
         .eq('id', profile.id)
         .select()
@@ -137,6 +145,8 @@ export const useSupabaseProfiles = () => {
         images: profileImages,
         isUnlocked: data.is_unlocked || false,
         unlockPrice: Number(data.unlock_price) || 19.99,
+        photoPrice: Number(data.photo_price) || 4.99,
+        packagePrice: Number(data.package_price) || 19.99,
         createdAt: data.created_at
       };
 

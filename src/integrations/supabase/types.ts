@@ -20,7 +20,9 @@ export type Database = {
           created_at: string
           id: string
           payment_method: string
+          photo_id: string | null
           profile_id: string | null
+          purchase_type: string | null
           status: string | null
           transaction_id: string | null
           user_id: string | null
@@ -30,7 +32,9 @@ export type Database = {
           created_at?: string
           id?: string
           payment_method: string
+          photo_id?: string | null
           profile_id?: string | null
+          purchase_type?: string | null
           status?: string | null
           transaction_id?: string | null
           user_id?: string | null
@@ -40,7 +44,9 @@ export type Database = {
           created_at?: string
           id?: string
           payment_method?: string
+          photo_id?: string | null
           profile_id?: string | null
+          purchase_type?: string | null
           status?: string | null
           transaction_id?: string | null
           user_id?: string | null
@@ -48,6 +54,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "payments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_unlocks: {
+        Row: {
+          created_at: string
+          id: string
+          photo_index: number
+          profile_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_index: number
+          profile_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_index?: number
+          profile_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_unlocks_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -65,6 +103,8 @@ export type Database = {
           is_unlocked: boolean | null
           location: string | null
           name: string
+          package_price: number | null
+          photo_price: number | null
           unlock_price: number | null
           updated_at: string
           user_id: string | null
@@ -78,6 +118,8 @@ export type Database = {
           is_unlocked?: boolean | null
           location?: string | null
           name: string
+          package_price?: number | null
+          photo_price?: number | null
           unlock_price?: number | null
           updated_at?: string
           user_id?: string | null
@@ -91,6 +133,8 @@ export type Database = {
           is_unlocked?: boolean | null
           location?: string | null
           name?: string
+          package_price?: number | null
+          photo_price?: number | null
           unlock_price?: number | null
           updated_at?: string
           user_id?: string | null

@@ -1,7 +1,9 @@
 
 import { useState } from 'react';
-import { Lock, LockOpen, Star, CreditCard } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Lock, LockOpen, Star, CreditCard, Eye } from 'lucide-react';
 import { Profile } from '@/types/Profile';
+import { Button } from '@/components/ui/button';
 
 interface ProfileCardProps {
   profile: Profile;
@@ -77,21 +79,30 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
           ))}
         </div>
 
-        {/* Action Button */}
-        {lockedCount > 0 && !isUnlocked ? (
-          <button
-            onClick={() => setShowPayment(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
-          >
-            <CreditCard size={18} />
-            Unlock All Photos ($9.99)
-          </button>
-        ) : (
-          <div className="flex items-center justify-center gap-2 py-3 bg-green-600/20 text-green-400 rounded-lg border border-green-600/30">
-            <LockOpen size={18} />
-            All Photos Unlocked
-          </div>
-        )}
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Link to={`/profile/${profile.id}`} className="flex-1">
+            <Button variant="outline" className="w-full">
+              <Eye className="w-4 h-4 mr-2" />
+              View Profile
+            </Button>
+          </Link>
+          
+          {lockedCount > 0 && !isUnlocked ? (
+            <Button
+              onClick={() => setShowPayment(true)}
+              className="flex-1"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              ${profile.packagePrice?.toFixed(2) || '19.99'}
+            </Button>
+          ) : (
+            <Button variant="secondary" disabled className="flex-1">
+              <LockOpen className="w-4 h-4 mr-2" />
+              Unlocked
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Payment Modal */}
@@ -113,7 +124,7 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
                 onClick={handlePayment}
                 className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
               >
-                Pay $9.99
+                Pay ${profile.packagePrice?.toFixed(2) || '19.99'}
               </button>
             </div>
           </div>

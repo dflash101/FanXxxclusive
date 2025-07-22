@@ -14,6 +14,8 @@ const ProfileManager = ({ profile, onUpdate, onDelete }: ProfileManagerProps) =>
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editDescription, setEditDescription] = useState(profile.description);
+  const [editPhotoPrice, setEditPhotoPrice] = useState(profile.photoPrice?.toString() || '4.99');
+  const [editPackagePrice, setEditPackagePrice] = useState(profile.packagePrice?.toString() || '19.99');
   const [isUploading, setIsUploading] = useState(false);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +70,9 @@ const ProfileManager = ({ profile, onUpdate, onDelete }: ProfileManagerProps) =>
     onUpdate({
       ...profile,
       name: editName,
-      description: editDescription
+      description: editDescription,
+      photoPrice: parseFloat(editPhotoPrice) || 4.99,
+      packagePrice: parseFloat(editPackagePrice) || 19.99
     });
     setIsEditing(false);
   };
@@ -84,14 +88,40 @@ const ProfileManager = ({ profile, onUpdate, onDelete }: ProfileManagerProps) =>
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
+                placeholder="Profile name"
                 className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none"
               />
               <textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Profile description"
                 className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none resize-none"
                 rows={2}
               />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-300 text-sm mb-1">Single Photo Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editPhotoPrice}
+                    onChange={(e) => setEditPhotoPrice(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm mb-1">Package Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editPackagePrice}
+                    onChange={(e) => setEditPackagePrice(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveEdit}
@@ -110,7 +140,11 @@ const ProfileManager = ({ profile, onUpdate, onDelete }: ProfileManagerProps) =>
           ) : (
             <div>
               <h3 className="text-xl font-semibold text-white mb-2">{profile.name}</h3>
-              <p className="text-gray-400">{profile.description}</p>
+              <p className="text-gray-400 mb-2">{profile.description}</p>
+              <div className="flex gap-4 text-sm text-gray-300">
+                <span>Single Photo: ${profile.photoPrice?.toFixed(2) || '4.99'}</span>
+                <span>Package: ${profile.packagePrice?.toFixed(2) || '19.99'}</span>
+              </div>
             </div>
           )}
         </div>
