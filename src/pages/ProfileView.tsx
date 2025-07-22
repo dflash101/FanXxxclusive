@@ -2,11 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Profile, ProfileImage } from '@/types/Profile';
+import { Profile, ProfileImage, ProfileVideo } from '@/types/Profile';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import PaymentModal from '@/components/PaymentModal';
 import { usePhotoUnlocks } from '@/hooks/usePhotoUnlocks';
+import { useVideoUnlocks } from '@/hooks/useVideoUnlocks';
 import { ArrowLeft, Lock, Unlock, Star, Eye, CreditCard } from 'lucide-react';
 
 const ProfileView = () => {
@@ -22,6 +23,7 @@ const ProfileView = () => {
   }>({ open: false, type: 'package', amount: 0 });
 
   const { isPhotoUnlocked, unlockPhoto, getUnlockedPhotosForProfile } = usePhotoUnlocks('guest-user');
+  const { isVideoUnlocked } = useVideoUnlocks('guest-user');
 
   const loadProfile = async () => {
     if (!id) return;
@@ -42,6 +44,13 @@ const ProfileView = () => {
         isCover: index === 0
       }));
 
+      const profileVideos: ProfileVideo[] = (data.video_urls || []).map((url: string, index: number) => ({
+        id: `${data.id}-video-${index}`,
+        url,
+        isLocked: !data.is_unlocked && !isVideoUnlocked(data.id, index),
+        isCover: index === 0
+      }));
+
       const mappedProfile: Profile = {
         id: data.id,
         name: data.name,
@@ -50,10 +59,13 @@ const ProfileView = () => {
         bio: data.bio || undefined,
         description: data.bio || undefined,
         images: profileImages,
+        videos: profileVideos,
         isUnlocked: data.is_unlocked || false,
         unlockPrice: Number(data.unlock_price) || 19.99,
         photoPrice: Number(data.photo_price) || 4.99,
         packagePrice: Number(data.package_price) || 19.99,
+        videoPrice: Number(data.video_price) || 9.99,
+        videoPackagePrice: Number(data.video_package_price) || 39.99,
         createdAt: data.created_at
       };
 
@@ -232,10 +244,13 @@ const ProfileView = () => {
             </div>
           </div>
 
-          {/* Photo Gallery */}
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {profile.images.map((image, index) => {
+          {/* Media Gallery */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Photos */}
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-4">Photos</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {profile.images.map((image, index) => {
                 const isUnlocked = profile.isUnlocked || isPhotoUnlocked(profile.id, index);
                 
                 return (
@@ -278,8 +293,49 @@ const ProfileView = () => {
                     </div>
                   </div>
                 );
-              })}
+                })}
+              </div>
             </div>
+
+            {/* Videos */}
+            {profile.videos.length > 0 && (
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-4">Videos</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {profile.videos.map((video, index) => {
+                    const isUnlocked = profile.isUnlocked || isVideoUnlocked(profile.id, index);
+                    
+                    return (
+                      <div key={video.id} className="relative group">
+                        <div className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300">
+                          <video
+                            src={video.url}
+                            className={`w-full h-full object-cover transition-all duration-300 ${
+                              isUnlocked ? 'group-hover:scale-110' : 'blur-md grayscale opacity-50'
+                            }`}
+                            muted
+                            loop
+                            preload="metadata"
+                          />
+                          
+                          {!isUnlocked && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                              <Button
+                                size="sm"
+                                className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white border-0 transition-all duration-200 transform hover:scale-105"
+                              >
+                                <Lock className="w-4 h-4 mr-2" />
+                                ${profile.videoPrice?.toFixed(2)}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

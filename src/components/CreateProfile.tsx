@@ -55,6 +55,7 @@ const CreateProfile = ({ onClose, onCreate }: CreateProfileProps) => {
       name: name.trim(),
       description: description.trim(),
       images,
+      videos: [],
       createdAt: new Date().toISOString()
     };
 

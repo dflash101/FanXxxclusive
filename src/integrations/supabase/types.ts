@@ -26,6 +26,7 @@ export type Database = {
           status: string | null
           transaction_id: string | null
           user_id: string | null
+          video_id: string | null
         }
         Insert: {
           amount: number
@@ -38,6 +39,7 @@ export type Database = {
           status?: string | null
           transaction_id?: string | null
           user_id?: string | null
+          video_id?: string | null
         }
         Update: {
           amount?: number
@@ -50,6 +52,7 @@ export type Database = {
           status?: string | null
           transaction_id?: string | null
           user_id?: string | null
+          video_id?: string | null
         }
         Relationships: [
           {
@@ -108,6 +111,9 @@ export type Database = {
           unlock_price: number | null
           updated_at: string
           user_id: string | null
+          video_package_price: number | null
+          video_price: number | null
+          video_urls: string[] | null
         }
         Insert: {
           age?: number | null
@@ -123,6 +129,9 @@ export type Database = {
           unlock_price?: number | null
           updated_at?: string
           user_id?: string | null
+          video_package_price?: number | null
+          video_price?: number | null
+          video_urls?: string[] | null
         }
         Update: {
           age?: number | null
@@ -138,8 +147,43 @@ export type Database = {
           unlock_price?: number | null
           updated_at?: string
           user_id?: string | null
+          video_package_price?: number | null
+          video_price?: number | null
+          video_urls?: string[] | null
         }
         Relationships: []
+      }
+      video_unlocks: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string | null
+          user_id: string | null
+          video_index: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          user_id?: string | null
+          video_index: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          user_id?: string | null
+          video_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_unlocks_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

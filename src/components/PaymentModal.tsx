@@ -11,7 +11,7 @@ interface PaymentModalProps {
   onPaymentSuccess?: (method: string) => void;
   profile?: any;
   amount?: number;
-  purchaseType?: 'photo' | 'package';
+  purchaseType?: 'photo' | 'package' | 'video' | 'video_package';
 }
 
 const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purchaseType }: PaymentModalProps) => {
@@ -86,6 +86,8 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purc
               <DialogDescription>
                 {purchaseType === 'photo' ? `Unlock single photo for $${amount?.toFixed(2)}` : 
                  purchaseType === 'package' ? `Unlock all photos for $${amount?.toFixed(2)}` : 
+                 purchaseType === 'video' ? `Unlock single video for $${amount?.toFixed(2)}` :
+                 purchaseType === 'video_package' ? `Unlock all videos for $${amount?.toFixed(2)}` :
                  'Select your preferred way to pay'}
               </DialogDescription>
             </div>
