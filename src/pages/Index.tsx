@@ -26,7 +26,7 @@ const Index = () => {
     setPaymentModalOpen(true);
   };
 
-  const handlePaymentSuccess = (method: string) => {
+  const handlePaymentSuccess = () => {
     if (selectedProfileId) {
       const newUnlocked = [...unlockedProfiles, selectedProfileId];
       setUnlockedProfiles(newUnlocked);
@@ -34,7 +34,7 @@ const Index = () => {
       
       toast({
         title: "Payment Successful!",
-        description: `Profile unlocked using ${method === 'square' ? 'Square' : 'Trust Wallet'}`,
+        description: "Profile unlocked successfully",
         variant: "default",
       });
     }
@@ -95,11 +95,16 @@ const Index = () => {
       </main>
 
       {/* Payment Modal */}
-      <PaymentModal
-        isOpen={paymentModalOpen}
-        onClose={() => setPaymentModalOpen(false)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
+      {selectedProfileId && (
+        <PaymentModal
+          isOpen={paymentModalOpen}
+          onClose={() => setPaymentModalOpen(false)}
+          onPaymentSuccess={handlePaymentSuccess}
+          profile={profiles.find(p => p.id === selectedProfileId)!}
+          amount={19.99}
+          purchaseType="package"
+        />
+      )}
     </div>
   );
 };

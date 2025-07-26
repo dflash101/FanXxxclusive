@@ -1,40 +1,100 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { CreditCard, Wallet, Check, X } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, X, Shield, CreditCard, Wallet, CheckCircle, Check } from 'lucide-react';
+import { Profile } from '@/types/Profile';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPaymentSuccess?: (method: string) => void;
-  profile?: any;
-  amount?: number;
-  purchaseType?: 'photo' | 'package' | 'video' | 'video_package';
+  onPaymentSuccess?: () => void;
+  profile: Profile;
+  amount: number;
+  purchaseType: 'photo' | 'package' | 'video' | 'video_package';
+  photoId?: string;
+  videoId?: string;
 }
 
-const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purchaseType }: PaymentModalProps) => {
-  console.log('PaymentModal component loaded', { isOpen, profile, amount, purchaseType });
-  const [selectedMethod, setSelectedMethod] = useState<string>("");
+// Declare Square types for TypeScript
+declare global {
+  interface Window {
+    Square: any;
+  }
+}
+
+const PaymentModal: React.FC<PaymentModalProps> = ({
+  isOpen,
+  onClose,
+  onPaymentSuccess,
+  profile,
+  amount,
+  purchaseType,
+  photoId,
+  videoId
+}) => {
+  const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [squareCard, setSquareCard] = useState<any>(null);
+  const [squareApplicationId, setSquareApplicationId] = useState<string>('');
+  const { toast } = useToast();
+
+  // Load Square Web SDK
+  useEffect(() => {
+    if (isOpen && selectedMethod === 'square' && !window.Square) {
+      const script = document.createElement('script');
+      script.src = 'https://sandbox.web.squarecdn.com/v1/square.js';
+      script.async = true;
+      script.onload = initializeSquare;
+      document.head.appendChild(script);
+    } else if (window.Square && selectedMethod === 'square') {
+      initializeSquare();
+    }
+  }, [isOpen, selectedMethod]);
+
+  const initializeSquare = async () => {
+    try {
+      // Get Square application ID from environment
+      const { data, error } = await supabase.functions.invoke('get-square-config');
+      if (error) throw error;
+      
+      setSquareApplicationId(data.applicationId);
+      
+      if (window.Square) {
+        const payments = window.Square.payments(data.applicationId, data.locationId);
+        const card = await payments.card();
+        await card.attach('#square-card-container');
+        setSquareCard(card);
+      }
+    } catch (error) {
+      console.error('Failed to initialize Square:', error);
+      toast({
+        title: "Square Initialization Failed",
+        description: "Unable to load Square payment form. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const paymentMethods = [
     {
-      id: "square",
-      name: "Square",
-      description: "Pay with credit card, debit card, or bank transfer",
+      id: 'square',
+      name: 'Square',
+      description: 'Secure credit card processing',
       icon: CreditCard,
-      badge: "Popular",
-      features: ["Secure payments", "Instant processing", "All major cards accepted"]
+      badge: 'Recommended',
+      features: ['Instant processing', 'Bank-level security', 'All major cards accepted']
     },
     {
-      id: "trust-wallet",
-      name: "Trust Wallet", 
-      description: "Pay with cryptocurrency using Trust Wallet",
+      id: 'trust-wallet',
+      name: 'Trust Wallet',
+      description: 'Crypto payments',
       icon: Wallet,
-      badge: "Crypto",
-      features: ["Multiple cryptocurrencies", "Decentralized", "Low fees"]
+      badge: 'Crypto',
+      features: ['Multiple cryptocurrencies', 'Decentralized', 'Low fees']
     }
   ];
 
@@ -48,30 +108,77 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purc
     setIsProcessing(true);
     
     try {
-      if (selectedMethod === "square") {
-        // Square SDK integration will go here
-        console.log("Processing Square payment");
-        // Simulate payment processing
+      if (selectedMethod === 'square') {
+        await processSquarePayment();
+      } else if (selectedMethod === 'trust-wallet') {
+        // Simulate Trust Wallet payment for now
         await new Promise(resolve => setTimeout(resolve, 2000));
-      } else if (selectedMethod === "trust-wallet") {
-        // Trust Wallet integration will go here
-        console.log("Processing Trust Wallet payment");
-        // Simulate payment processing
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        console.log(`Trust Wallet payment processed for $${amount}`);
+        toast({
+          title: "Payment Successful",
+          description: `Payment of $${amount} processed successfully.`,
+        });
+        onPaymentSuccess?.();
+        onClose();
       }
-      
-      onPaymentSuccess?.(selectedMethod);
-      onClose();
     } catch (error) {
-      console.error("Payment failed:", error);
+      console.error('Payment failed:', error);
+      toast({
+        title: "Payment Failed",
+        description: error.message || "An error occurred during payment processing.",
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
     }
   };
 
+  const processSquarePayment = async () => {
+    if (!squareCard) {
+      throw new Error('Square payment form not initialized');
+    }
+
+    try {
+      // Tokenize the card
+      const result = await squareCard.tokenize();
+      
+      if (result.status === 'OK') {
+        // Process payment with our Edge Function
+        const { data, error } = await supabase.functions.invoke('create-square-payment', {
+          body: {
+            sourceId: result.token,
+            amount: amount,
+            profileId: profile.id,
+            purchaseType: purchaseType,
+            photoId: photoId,
+            videoId: videoId
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.success) {
+          toast({
+            title: "Payment Successful",
+            description: `Payment of $${amount} processed successfully.`,
+          });
+          onPaymentSuccess?.();
+          onClose();
+        } else {
+          throw new Error(data.error || 'Payment failed');
+        }
+      } else {
+        throw new Error(result.errors?.[0]?.message || 'Card tokenization failed');
+      }
+    } catch (error) {
+      throw new Error(`Square payment failed: ${error.message}`);
+    }
+  };
+
   const handleClose = () => {
     if (!isProcessing) {
-      setSelectedMethod("");
+      setSelectedMethod('');
+      setSquareCard(null);
       onClose();
     }
   };
@@ -145,7 +252,7 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purc
                   <ul className="space-y-2">
                     {method.features.map((feature, index) => (
                       <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                        <CheckCircle className="h-3 w-3 text-green-500" />
                         {feature}
                       </li>
                     ))}
@@ -155,6 +262,21 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purc
             );
           })}
         </div>
+
+        {/* Square Card Form */}
+        {selectedMethod === 'square' && (
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-4">Payment Information</h3>
+            <div id="square-card-container" className="border rounded-lg p-4 bg-background min-h-[120px] flex items-center justify-center">
+              {!squareCard && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading payment form...
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex justify-center gap-4 mt-6">
@@ -168,12 +290,12 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purc
           </Button>
           <Button 
             onClick={handleProceed}
-            disabled={!selectedMethod || isProcessing}
+            disabled={!selectedMethod || isProcessing || (selectedMethod === 'square' && !squareCard)}
             className="px-8"
           >
             {isProcessing ? (
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                <Loader2 className="w-4 h-4 animate-spin" />
                 Processing...
               </div>
             ) : (
@@ -184,8 +306,9 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purc
 
         {/* Security Notice */}
         <div className="text-center mt-4">
-          <p className="text-sm text-muted-foreground">
-            🔒 Your payment information is secure and encrypted
+          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+            <Shield className="h-4 w-4" />
+            Your payment information is secure and encrypted
           </p>
         </div>
       </DialogContent>
@@ -194,4 +317,3 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, profile, amount, purc
 };
 
 export default PaymentModal;
-export { PaymentModal };
