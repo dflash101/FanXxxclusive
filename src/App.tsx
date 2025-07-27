@@ -11,6 +11,7 @@ import Admin from "./pages/Admin";
 import Payment from "./pages/Payment";
 import ProfileView from "./pages/ProfileView";
 import Auth from "./pages/Auth";
+import EmailVerifiedPage from "./pages/EmailVerifiedPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
                 <Auth />
               </AuthGuard>
             } />
+            <Route path="/email-verified" element={<EmailVerifiedPage />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/profile/:id" element={
