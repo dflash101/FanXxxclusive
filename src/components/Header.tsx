@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, ShoppingBag } from 'lucide-react';
 
 export const Header = () => {
   const { user, signOut } = useAuth();
@@ -33,8 +33,8 @@ export const Header = () => {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
                   <Link to="/profile" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Profile
+                    <ShoppingBag className="h-4 w-4" />
+                    My Purchases
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={signOut} className="flex items-center gap-2">

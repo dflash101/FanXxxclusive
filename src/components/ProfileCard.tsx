@@ -16,7 +16,7 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const coverImage = profile.images.find(img => img.isCover) || profile.images[0];
-  const lockedCount = profile.images.filter(img => img.isLocked).length;
+  const lockedCount = profile.images.filter(img => img.isLocked && !img.isCover).length; // Don't count cover as locked
 
   const handlePayment = () => {
     // Simulate payment process
@@ -61,7 +61,7 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
             <div
               key={image.id}
               className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer ${
-                image.isLocked && !isUnlocked ? 'filter blur-md' : ''
+                image.isLocked && !isUnlocked && !image.isCover ? 'filter blur-md' : ''
               }`}
               onClick={() => setSelectedImage(image.url)}
             >
@@ -70,7 +70,7 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
                 alt=""
                 className="w-full h-full object-cover hover:scale-110 transition-transform duration-200"
               />
-              {image.isLocked && !isUnlocked && (
+              {image.isLocked && !isUnlocked && !image.isCover && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <Lock className="w-6 h-6 text-white" />
                 </div>

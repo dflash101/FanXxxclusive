@@ -44,14 +44,14 @@ const ProfileView = () => {
       const profileImages: ProfileImage[] = (data.image_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-${index}`,
         url,
-        isLocked: !data.is_unlocked && !isPhotoUnlocked(data.id, index),
+        isLocked: !data.is_unlocked && !isPhotoUnlocked(data.id, index) && index !== 0, // Cover photo (index 0) is always unlocked
         isCover: index === 0
       }));
 
       const profileVideos: ProfileVideo[] = (data.video_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-video-${index}`,
         url,
-        isLocked: !data.is_unlocked && !isVideoUnlocked(data.id, index),
+        isLocked: !data.is_unlocked && !isVideoUnlocked(data.id, index) && index !== 0, // Cover video (index 0) is always unlocked
         isCover: index === 0
       }));
 
@@ -242,7 +242,7 @@ const ProfileView = () => {
               <h3 className="text-xl font-semibold text-white mb-4">Photos</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {profile.images.map((image, index) => {
-                const isUnlocked = profile.isUnlocked || isPhotoUnlocked(profile.id, index);
+                const isUnlocked = profile.isUnlocked || isPhotoUnlocked(profile.id, index) || index === 0; // Cover photo always unlocked
                 
                 return (
                   <div key={image.id} className="relative group">
@@ -294,7 +294,7 @@ const ProfileView = () => {
                 <h3 className="text-xl font-semibold text-white mb-4">Videos</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {profile.videos.map((video, index) => {
-                    const isUnlocked = profile.isUnlocked || isVideoUnlocked(profile.id, index);
+                    const isUnlocked = profile.isUnlocked || isVideoUnlocked(profile.id, index) || index === 0; // Cover video always unlocked
                     
                     return (
                       <div key={video.id} className="relative group">
