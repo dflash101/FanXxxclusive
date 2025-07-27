@@ -8,10 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import PaymentModal from '@/components/PaymentModal';
 import { usePhotoUnlocks } from '@/hooks/usePhotoUnlocks';
 import { useVideoUnlocks } from '@/hooks/useVideoUnlocks';
+import { useAuth } from '@/contexts/AuthContext';
+import { Header } from '@/components/Header';
+import { AuthGuard } from '@/components/AuthGuard';
 import { ArrowLeft, Lock, Unlock, Star, Eye, CreditCard } from 'lucide-react';
 
 const ProfileView = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -22,8 +26,8 @@ const ProfileView = () => {
     amount: number;
   }>({ open: false, type: 'package', amount: 0 });
 
-  const { isPhotoUnlocked, unlockPhoto, getUnlockedPhotosForProfile } = usePhotoUnlocks('guest-user');
-  const { isVideoUnlocked } = useVideoUnlocks('guest-user');
+  const { isPhotoUnlocked, unlockPhoto, getUnlockedPhotosForProfile } = usePhotoUnlocks(user?.id);
+  const { isVideoUnlocked } = useVideoUnlocks(user?.id);
 
   const loadProfile = async () => {
     if (!id) return;
@@ -166,21 +170,8 @@ const ProfileView = () => {
   const isFullyUnlocked = profile.isUnlocked || unlockedCount === totalPhotos;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-            FanXxxclusive
-          </h1>
-          <Link to="/">
-            <Button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Gallery
-            </Button>
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
