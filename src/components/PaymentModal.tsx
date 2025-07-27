@@ -143,9 +143,33 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       }
     } catch (error) {
       console.error('Payment failed:', error);
+      
+      // Show specific error message based on error type
+      let errorMessage = "An error occurred during payment processing.";
+      let errorTitle = "Payment Failed";
+      
+      if (error.message) {
+        errorMessage = error.message;
+        
+        // Check for specific error types
+        if (error.message.includes('declined') || error.message.includes('GENERIC_DECLINE')) {
+          errorTitle = "Payment Declined";
+          errorMessage = "Your payment was declined. Please check your card details or try a different payment method.";
+        } else if (error.message.includes('insufficient funds')) {
+          errorTitle = "Insufficient Funds";
+          errorMessage = "Insufficient funds available. Please check your account balance or try a different payment method.";
+        } else if (error.message.includes('expired')) {
+          errorTitle = "Card Expired";
+          errorMessage = "Your card has expired. Please use a different payment method.";
+        } else if (error.message.includes('invalid card')) {
+          errorTitle = "Invalid Card";
+          errorMessage = "Invalid card information. Please check your card details and try again.";
+        }
+      }
+      
       toast({
-        title: "Payment Failed",
-        description: error.message || "An error occurred during payment processing.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -180,12 +204,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         if (data.success) {
           toast({
             title: "Payment Successful",
-            description: `Payment of $${amount} processed successfully.`,
+            description: data.message || `Payment of $${amount} processed successfully.`,
           });
           onPaymentSuccess?.();
           onClose();
         } else {
-          throw new Error(data.error || 'Payment failed');
+          throw new Error(data.error || 'Payment processing failed. Please try again.');
         }
       } else {
         throw new Error(result.errors?.[0]?.message || 'Card tokenization failed');

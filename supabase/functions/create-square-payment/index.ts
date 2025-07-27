@@ -76,16 +76,77 @@ serve(async (req) => {
     })
 
     const squareResult = await squareResponse.json()
+    
+    // Always log the payment attempt for debugging
+    console.log('Square payment response:', squareResult)
 
     if (!squareResponse.ok) {
       console.error('Square payment failed:', squareResult)
-      throw new Error(squareResult.errors?.[0]?.detail || 'Payment failed')
+      
+      // Store failed payment record for tracking and potential refunds
+      const { error: paymentError } = await supabaseClient
+        .from('payments')
+        .insert({
+          transaction_id: squareResult.payment?.id || crypto.randomUUID(),
+          profile_id: profileId,
+          user_id: user.id,
+          amount: amount,
+          status: 'failed',
+          purchase_type: purchaseType,
+          payment_method: 'square',
+          photo_id: photoId || null,
+          video_id: videoId || null
+        })
+
+      if (paymentError) {
+        console.error('Failed to store failed payment:', paymentError)
+      }
+
+      // Handle specific Square error codes
+      const errorCode = squareResult.errors?.[0]?.code
+      const errorDetail = squareResult.errors?.[0]?.detail
+      
+      if (errorCode === 'GENERIC_DECLINE') {
+        throw new Error('Payment was declined by your bank. Please check your card details or try a different payment method.')
+      } else if (errorCode === 'INSUFFICIENT_FUNDS') {
+        throw new Error('Insufficient funds. Please check your account balance or try a different payment method.')
+      } else if (errorCode === 'CARD_EXPIRED') {
+        throw new Error('Your card has expired. Please use a different payment method.')
+      } else if (errorCode === 'INVALID_CARD') {
+        throw new Error('Invalid card information. Please check your card details.')
+      } else {
+        throw new Error(errorDetail || 'Payment processing failed. Please try again or contact support.')
+      }
     }
 
     const payment = squareResult.payment
-    console.log('Square payment successful:', payment.id)
+    console.log('Square payment processed:', payment.id, 'Status:', payment.status)
 
-    // Store payment record
+    // Check if payment actually succeeded
+    if (payment.status === 'FAILED') {
+      // Store failed payment record
+      const { error: paymentError } = await supabaseClient
+        .from('payments')
+        .insert({
+          transaction_id: payment.id,
+          profile_id: profileId,
+          user_id: user.id,
+          amount: amount,
+          status: 'failed',
+          purchase_type: purchaseType,
+          payment_method: 'square',
+          photo_id: photoId || null,
+          video_id: videoId || null
+        })
+
+      if (paymentError) {
+        console.error('Failed to store failed payment:', paymentError)
+      }
+
+      throw new Error('Payment was declined. Please check your card details or try a different payment method.')
+    }
+
+    // Store successful payment record
     const { error: paymentError } = await supabaseClient
       .from('payments')
       .insert({
@@ -102,7 +163,7 @@ serve(async (req) => {
 
     if (paymentError) {
       console.error('Failed to store payment:', paymentError)
-      throw new Error('Failed to store payment record')
+      throw new Error('Payment processed but failed to store record. Please contact support.')
     }
 
     // If payment is completed, process unlocks
@@ -170,7 +231,8 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         paymentId: payment.id,
-        status: payment.status 
+        status: payment.status,
+        message: 'Payment processed successfully'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
