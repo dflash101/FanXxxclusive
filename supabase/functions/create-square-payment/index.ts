@@ -32,11 +32,9 @@ serve(async (req) => {
       }
     )
 
-    // Get user
+    // Get user (allow anonymous payments)
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
-    if (userError || !user) {
-      throw new Error('Authentication required')
-    }
+    const userId = user?.id || 'anonymous'
 
     const { sourceId, amount, profileId, purchaseType, photoId, videoId }: PaymentRequest = await req.json()
 
@@ -91,7 +89,7 @@ serve(async (req) => {
       .insert({
         transaction_id: payment.id,
         profile_id: profileId,
-        user_id: user.id,
+        user_id: userId,
         amount: amount,
         status: payment.status === 'COMPLETED' ? 'completed' : 'pending',
         purchase_type: purchaseType,
@@ -112,7 +110,7 @@ serve(async (req) => {
         await supabaseClient
           .from('photo_unlocks')
           .insert({
-            user_id: user.id,
+            user_id: userId,
             profile_id: profileId,
             photo_index: photoIndex
           })
@@ -121,7 +119,7 @@ serve(async (req) => {
         await supabaseClient
           .from('video_unlocks')
           .insert({
-            user_id: user.id,
+            user_id: userId,
             profile_id: profileId,
             video_index: videoIndex
           })
@@ -135,7 +133,7 @@ serve(async (req) => {
 
         if (profile?.image_urls) {
           const unlocks = profile.image_urls.map((_, index) => ({
-            user_id: user.id,
+            user_id: userId,
             profile_id: profileId,
             photo_index: index
           }))
@@ -154,7 +152,7 @@ serve(async (req) => {
 
         if (profile?.video_urls) {
           const unlocks = profile.video_urls.map((_, index) => ({
-            user_id: user.id,
+            user_id: userId,
             profile_id: profileId,
             video_index: index
           }))
