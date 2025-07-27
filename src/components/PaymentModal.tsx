@@ -144,26 +144,32 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     } catch (error) {
       console.error('Payment failed:', error);
       
-      // Show specific error message based on error type
+      // Enhanced error handling for production
       let errorMessage = "An error occurred during payment processing.";
       let errorTitle = "Payment Failed";
       
       if (error.message) {
+        // Use the specific error message from the backend
         errorMessage = error.message;
         
-        // Check for specific error types
-        if (error.message.includes('declined') || error.message.includes('GENERIC_DECLINE')) {
+        // Set appropriate titles based on error content
+        if (error.message.includes('declined')) {
           errorTitle = "Payment Declined";
-          errorMessage = "Your payment was declined. Please check your card details or try a different payment method.";
         } else if (error.message.includes('insufficient funds')) {
           errorTitle = "Insufficient Funds";
-          errorMessage = "Insufficient funds available. Please check your account balance or try a different payment method.";
         } else if (error.message.includes('expired')) {
           errorTitle = "Card Expired";
-          errorMessage = "Your card has expired. Please use a different payment method.";
-        } else if (error.message.includes('invalid card')) {
+        } else if (error.message.includes('invalid card') || error.message.includes('Invalid card')) {
           errorTitle = "Invalid Card";
-          errorMessage = "Invalid card information. Please check your card details and try again.";
+        } else if (error.message.includes('security code') || error.message.includes('CVV')) {
+          errorTitle = "Security Code Error";
+        } else if (error.message.includes('address verification')) {
+          errorTitle = "Address Verification Failed";
+        } else if (error.message.includes('not supported')) {
+          errorTitle = "Card Not Supported";
+        } else if (error.message.includes('credentials not configured')) {
+          errorTitle = "Configuration Error";
+          errorMessage = "Payment system is not properly configured. Please contact support.";
         }
       }
       

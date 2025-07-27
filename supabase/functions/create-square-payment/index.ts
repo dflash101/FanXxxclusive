@@ -45,11 +45,14 @@ serve(async (req) => {
     // Square API configuration
     const squareApplicationId = Deno.env.get('SQUARE_APPLICATION_ID')
     const squareAccessToken = Deno.env.get('SQUARE_ACCESS_TOKEN')
-    const squareEnvironment = Deno.env.get('SQUARE_ENVIRONMENT') || 'sandbox'
+    const squareEnvironment = Deno.env.get('SQUARE_ENVIRONMENT') || 'production'
+    const squareLocationId = Deno.env.get('SQUARE_LOCATION_ID')
 
-    if (!squareApplicationId || !squareAccessToken) {
-      throw new Error('Square credentials not configured')
+    if (!squareApplicationId || !squareAccessToken || !squareLocationId) {
+      throw new Error('Square credentials not configured properly')
     }
+
+    console.log(`Processing payment in ${squareEnvironment} environment`)
 
     const squareApiUrl = squareEnvironment === 'production' 
       ? 'https://connect.squareup.com'
@@ -62,7 +65,9 @@ serve(async (req) => {
         amount: Math.round(amount * 100), // Convert to cents
         currency: 'USD'
       },
-      idempotency_key: crypto.randomUUID()
+      location_id: squareLocationId,
+      idempotency_key: crypto.randomUUID(),
+      note: `${purchaseType} purchase for profile ${profileId}`
     }
 
     const squareResponse = await fetch(`${squareApiUrl}/v2/payments`, {
@@ -102,19 +107,32 @@ serve(async (req) => {
         console.error('Failed to store failed payment:', paymentError)
       }
 
-      // Handle specific Square error codes
+      // Handle specific Square error codes for production
       const errorCode = squareResult.errors?.[0]?.code
       const errorDetail = squareResult.errors?.[0]?.detail
       
+      console.error(`Square error in ${squareEnvironment}:`, errorCode, errorDetail)
+      
+      // Production-specific error handling
       if (errorCode === 'GENERIC_DECLINE') {
-        throw new Error('Payment was declined by your bank. Please check your card details or try a different payment method.')
+        throw new Error('Payment was declined. Please check your card information or contact your bank.')
       } else if (errorCode === 'INSUFFICIENT_FUNDS') {
-        throw new Error('Insufficient funds. Please check your account balance or try a different payment method.')
+        throw new Error('Insufficient funds. Please check your account balance or use a different payment method.')
       } else if (errorCode === 'CARD_EXPIRED') {
-        throw new Error('Your card has expired. Please use a different payment method.')
+        throw new Error('Your card has expired. Please use a valid payment method.')
       } else if (errorCode === 'INVALID_CARD') {
-        throw new Error('Invalid card information. Please check your card details.')
+        throw new Error('Invalid card information. Please verify your card details.')
+      } else if (errorCode === 'CVV_FAILURE') {
+        throw new Error('Invalid security code. Please check your CVV and try again.')
+      } else if (errorCode === 'ADDRESS_VERIFICATION_FAILURE') {
+        throw new Error('Address verification failed. Please check your billing address.')
+      } else if (errorCode === 'CARD_NOT_SUPPORTED') {
+        throw new Error('This card type is not supported. Please use a different payment method.')
+      } else if (errorCode === 'PAN_FAILURE') {
+        throw new Error('Invalid card number. Please check your card details.')
       } else {
+        // Log detailed error for debugging in production
+        console.error('Unhandled Square error:', { errorCode, errorDetail, environment: squareEnvironment })
         throw new Error(errorDetail || 'Payment processing failed. Please try again or contact support.')
       }
     }
