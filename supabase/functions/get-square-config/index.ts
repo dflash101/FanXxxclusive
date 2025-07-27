@@ -19,9 +19,9 @@ serve(async (req) => {
       throw new Error('Square Application ID not configured')
     }
 
-    // For sandbox, use a default location ID, for production you'd get this from Square API
+    // Get location ID from environment or use sandbox default
     const locationId = squareEnvironment === 'production' 
-      ? 'YOUR_PRODUCTION_LOCATION_ID' // Replace with actual location ID
+      ? Deno.env.get('SQUARE_LOCATION_ID') || 'PRODUCTION_LOCATION_ID_REQUIRED'
       : 'sandbox'
 
     return new Response(

@@ -45,15 +45,35 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   // Load Square Web SDK
   useEffect(() => {
     if (isOpen && selectedMethod === 'square' && !window.Square) {
-      const script = document.createElement('script');
-      script.src = 'https://sandbox.web.squarecdn.com/v1/square.js';
-      script.async = true;
-      script.onload = initializeSquare;
-      document.head.appendChild(script);
+      loadSquareSDK();
     } else if (window.Square && selectedMethod === 'square') {
       initializeSquare();
     }
   }, [isOpen, selectedMethod]);
+
+  const loadSquareSDK = async () => {
+    try {
+      // Get Square config first to determine environment
+      const { data, error } = await supabase.functions.invoke('get-square-config');
+      if (error) throw error;
+      
+      // Load the correct SDK based on environment
+      const script = document.createElement('script');
+      script.src = data.environment === 'production' 
+        ? 'https://web.squarecdn.com/v1/square.js'
+        : 'https://sandbox.web.squarecdn.com/v1/square.js';
+      script.async = true;
+      script.onload = initializeSquare;
+      document.head.appendChild(script);
+    } catch (error) {
+      console.error('Failed to load Square SDK:', error);
+      toast({
+        title: "Square SDK Load Failed",
+        description: "Unable to load Square payment system. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const initializeSquare = async () => {
     try {
