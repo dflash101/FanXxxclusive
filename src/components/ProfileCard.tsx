@@ -27,7 +27,7 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
   };
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300 group">
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700 hover:border-purple-500/50 transition-all duration-300 group shadow-lg shadow-purple-500/10 hover:shadow-purple-500/20">
       {/* Cover Image */}
       <div className="relative aspect-[4/3] overflow-hidden">
         {coverImage && (
@@ -91,13 +91,13 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
           {lockedCount > 0 && !isUnlocked ? (
             <Button
               onClick={() => setShowPayment(true)}
-              className="flex-1"
+              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
             >
               <CreditCard className="w-4 h-4 mr-2" />
               ${profile.packagePrice?.toFixed(2) || '19.99'}
             </Button>
           ) : (
-            <Button variant="secondary" disabled className="flex-1">
+            <Button variant="secondary" disabled className="flex-1 bg-green-600/20 text-green-300 border-green-600/30">
               <LockOpen className="w-4 h-4 mr-2" />
               Unlocked
             </Button>

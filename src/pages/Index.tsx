@@ -47,7 +47,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       <Header />
 
       {/* Main Content */}
@@ -64,7 +64,7 @@ const Index = () => {
               <p className="text-muted-foreground mb-6">Admin needs to upload some profiles first.</p>
               <Link 
                 to="/admin" 
-                className="inline-block px-6 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg hover:opacity-90 transition-all duration-200"
+                className="inline-block px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
               >
                 Go to Admin Panel
               </Link>

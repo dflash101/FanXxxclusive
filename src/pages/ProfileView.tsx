@@ -139,7 +139,7 @@ const ProfileView = () => {
         <header className="border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              FanXxxclusive
+              FanXXXclusive
             </h1>
             <Link to="/">
               <Button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105">
@@ -170,7 +170,7 @@ const ProfileView = () => {
   const isFullyUnlocked = profile.isUnlocked || unlockedCount === totalPhotos;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       <Header />
 
       {/* Main Content */}
