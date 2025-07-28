@@ -224,9 +224,9 @@ const ProfileView = () => {
                          <img
                            src={image.url}
                            alt={`${profile.name} photo ${index + 1}`}
-                           className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-110 ${
-                             !isUnlocked ? 'blur-sm' : ''
-                           }`}
+                            className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-110 ${
+                              !isUnlocked ? 'filter blur-md' : ''
+                            }`}
                          />
                          
                          {image.isCover && (
@@ -235,17 +235,17 @@ const ProfileView = () => {
                            </div>
                          )}
                          
-                         {!isUnlocked && (
-                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60 flex flex-col items-center justify-center">
-                             <Lock className="h-6 w-6 text-white mb-2" />
-                             <div className="text-white text-center">
-                               <p className="text-xs mb-1">Unlock Photo</p>
-                               <p className="text-xs font-semibold bg-purple-600 px-2 py-1 rounded">
-                                 ${profile.photoPrice || 4.99}
-                               </p>
-                             </div>
-                           </div>
-                         )}
+                          {!isUnlocked && (
+                            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
+                              <Lock className="h-6 w-6 text-white mb-2" />
+                              <div className="text-white text-center">
+                                <p className="text-xs mb-1">Unlock Photo</p>
+                                <p className="text-xs font-semibold bg-purple-600 px-2 py-1 rounded">
+                                  ${profile.photoPrice || 4.99}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                        </div>
                      </div>
                    );
@@ -266,26 +266,26 @@ const ProfileView = () => {
                            className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300 cursor-pointer"
                            onClick={() => !isUnlocked ? handleIndividualPayment(video.id, 'single-video') : null}
                          >
-                           <video
-                             src={video.url}
-                             className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-110 ${
-                               !isUnlocked ? 'blur-sm' : ''
-                             }`}
+                            <video
+                              src={video.url}
+                              className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-110 ${
+                                !isUnlocked ? 'filter blur-md' : ''
+                              }`}
                              controls={isUnlocked}
                              preload="metadata"
                            />
                            
-                           {!isUnlocked && (
-                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60 flex flex-col items-center justify-center">
-                               <Play className="h-8 w-8 text-white mb-2" />
-                               <div className="text-white text-center">
-                                 <p className="text-xs mb-1">Unlock Video</p>
-                                 <p className="text-xs font-semibold bg-blue-600 px-2 py-1 rounded">
-                                   ${profile.videoPrice || 9.99}
-                                 </p>
-                               </div>
-                             </div>
-                           )}
+                            {!isUnlocked && (
+                              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
+                                <Play className="h-8 w-8 text-white mb-2" />
+                                <div className="text-white text-center">
+                                  <p className="text-xs mb-1">Unlock Video</p>
+                                  <p className="text-xs font-semibold bg-blue-600 px-2 py-1 rounded">
+                                    ${profile.videoPrice || 9.99}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
                          </div>
                        </div>
                      );
