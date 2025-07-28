@@ -1,17 +1,30 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Profile, ProfileImage, ProfileVideo } from '@/types/Profile';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Header } from '@/components/Header';
-import { ArrowLeft, Star, Play } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { BlurredContent } from '@/components/BlurredContent';
+import { ShoppingCart, type CartItem } from '@/components/ShoppingCart';
+import { PaymentModal } from '@/components/PaymentModal';
+import { PurchasedContentViewer } from '@/components/PurchasedContentViewer';
+import { useItemPrices } from '@/hooks/useItemPrices';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import type { Profile } from '@/types/Profile';
 
-const ProfileView = () => {
+export const ProfileView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [showPurchasedContent, setShowPurchasedContent] = useState(false);
+  
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { getItemPrice } = useItemPrices(id || '');
 
   const loadProfile = async () => {
     if (!id) return;
@@ -21,21 +34,17 @@ const ProfileView = () => {
         .from('profiles')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
+      }
 
-      const profileImages: ProfileImage[] = (data.image_urls || []).map((url: string, index: number) => ({
-        id: `${data.id}-${index}`,
-        url,
-        isCover: index === 0
-      }));
-
-      const profileVideos: ProfileVideo[] = (data.video_urls || []).map((url: string, index: number) => ({
-        id: `${data.id}-video-${index}`,
-        url,
-        isCover: index === 0
-      }));
+      if (!data) {
+        setProfile(null);
+        return;
+      }
 
       const mappedProfile: Profile = {
         id: data.id,
@@ -43,192 +52,200 @@ const ProfileView = () => {
         age: data.age || undefined,
         location: data.location || undefined,
         bio: data.bio || undefined,
-        description: data.bio || undefined,
-        images: profileImages,
-        videos: profileVideos,
-        createdAt: data.created_at
+        images: (data.image_urls || []).map((url: string, index: number) => ({
+          id: `img-${index}`,
+          url,
+          isCover: index === 0,
+        })),
+        videos: (data.video_urls || []).map((url: string, index: number) => ({
+          id: `vid-${index}`,
+          url,
+          isCover: index === 0,
+        })),
+        createdAt: data.created_at,
       };
 
       setProfile(mappedProfile);
-    } catch (err) {
-      console.error('Error loading profile:', err);
+    } catch (error) {
+      console.error('Error loading profile:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const addToCart = (itemIndex: number, itemType: 'photo' | 'video') => {
+    if (!profile || !user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to purchase content.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const price = getItemPrice(itemIndex, itemType);
+    const imageUrl = itemType === 'photo' ? profile.images[itemIndex]?.url : undefined;
+
+    const cartItem: CartItem = {
+      profileId: profile.id,
+      profileName: profile.name,
+      itemIndex,
+      itemType,
+      price,
+      imageUrl
+    };
+
+    const exists = cartItems.some(item => 
+      item.profileId === cartItem.profileId && 
+      item.itemIndex === cartItem.itemIndex && 
+      item.itemType === cartItem.itemType
+    );
+
+    if (exists) {
+      toast({ title: "Already in Cart", description: "This item is already in your cart." });
+      return;
+    }
+
+    setCartItems(prev => [...prev, cartItem]);
+    toast({ title: "Added to Cart", description: `${itemType === 'photo' ? 'Photo' : 'Video'} #${itemIndex + 1} added to cart.` });
+  };
 
   useEffect(() => {
     loadProfile();
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-gray-400 text-lg">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-        {/* Header */}
-        <header className="border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              FanXXXclusive
-            </h1>
-            <Link to="/">
-              <Button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Gallery
-              </Button>
-            </Link>
-          </div>
-        </header>
-
-        <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-12 max-w-md mx-auto border border-gray-700 text-center">
-            <h2 className="text-2xl font-semibold text-white mb-4">Profile Not Found</h2>
-            <p className="text-gray-400 mb-6">The profile you're looking for doesn't exist or has been removed.</p>
-            <Link to="/">
-              <Button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200">
-                Back to Gallery
-              </Button>
-            </Link>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
+          <Button onClick={() => navigate('/')}>Back to Gallery</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <Header />
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Info */}
-          <div className="lg:col-span-1">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-2xl font-bold text-white">{profile.name}</h3>
-                  {profile.age && (
-                    <Badge className="bg-purple-600/20 text-purple-300 border-purple-600/30">
-                      {profile.age}
-                    </Badge>
-                  )}
-                </div>
-
-                {profile.location && (
-                  <p className="text-gray-400 mb-4 flex items-center">
-                    📍 {profile.location}
-                  </p>
-                )}
-                
-                {profile.bio && (
-                  <p className="text-gray-300 mb-6 leading-relaxed">{profile.bio}</p>
-                )}
-
-                <div className="space-y-4">
-                  <div className="flex justify-between text-sm bg-gray-700/30 rounded-lg p-3">
-                    <span className="text-gray-300">Total Photos:</span>
-                    <span className="text-white font-semibold">{profile.images.length}</span>
-                  </div>
-                  
-                  <div className="flex justify-between text-sm bg-gray-700/30 rounded-lg p-3">
-                    <span className="text-gray-300">Total Videos:</span>
-                    <span className="text-white font-semibold">{profile.videos.length}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Media Gallery */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Photos */}
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-4">Photos</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                 {profile.images.map((image, index) => (
-                     <div key={image.id} className="relative group">
-                       <div 
-                         className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer border border-gray-700 hover:border-gray-600 transition-all duration-300"
-                         onClick={() => setSelectedImage(image.url)}
-                       >
-                         <img
-                           src={image.url}
-                           alt={`${profile.name} photo ${index + 1}`}
-                           className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
-                         />
-                         
-                         {image.isCover && (
-                           <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm rounded-full p-2">
-                             <Star className="w-4 h-4 text-yellow-400" />
-                           </div>
-                         )}
-                       </div>
-                     </div>
-                 ))}
-              </div>
-            </div>
-
-            {/* Videos */}
-            {profile.videos.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-4">Videos</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                   {profile.videos.map((video, index) => (
-                       <div key={video.id} className="relative group">
-                         <div className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300">
-                            <video
-                              src={video.url}
-                              className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
-                             controls
-                             preload="metadata"
-                           />
-                         </div>
-                       </div>
-                   ))}
-                </div>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8 flex justify-between items-center">
+          <Button variant="outline" onClick={() => navigate('/')} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Gallery
+          </Button>
+          
+          <div className="flex gap-2">
+            {user && (
+              <Button variant="outline" onClick={() => setShowPurchasedContent(!showPurchasedContent)}>
+                My Purchases
+              </Button>
             )}
+            
+            <ShoppingCart
+              items={cartItems}
+              onRemoveItem={(profileId, itemIndex, itemType) => 
+                setCartItems(prev => prev.filter(item => 
+                  !(item.profileId === profileId && item.itemIndex === itemIndex && item.itemType === itemType)
+                ))
+              }
+              onCheckout={() => setPaymentModalOpen(true)}
+              onClearCart={() => setCartItems([])}
+            />
           </div>
         </div>
 
-        {/* Image Modal */}
-        {selectedImage && (
-          <div 
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={() => setSelectedImage(null)}
-          >
-            <div className="relative w-full h-full max-w-7xl max-h-full flex items-center justify-center">
-              <img
-                src={selectedImage}
-                alt="Full size"
-                className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg"
-                onClick={(e) => e.stopPropagation()}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                className="absolute top-4 right-4 bg-gray-800/80 hover:bg-gray-700 text-white border-gray-600 backdrop-blur-sm"
-                onClick={() => setSelectedImage(null)}
-              >
-                ✕
-              </Button>
+        {showPurchasedContent ? (
+          <div className="max-w-6xl mx-auto">
+            <PurchasedContentViewer />
+          </div>
+        ) : (
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1">
+                <div className="bg-card p-6 rounded-lg shadow-lg">
+                  <h1 className="text-3xl font-bold mb-4">{profile.name}</h1>
+                  {profile.age && <p className="text-muted-foreground mb-2">Age: {profile.age}</p>}
+                  {profile.location && <p className="text-muted-foreground mb-4">📍 {profile.location}</p>}
+                  {profile.bio && (
+                    <div className="mb-4">
+                      <h2 className="text-lg font-semibold mb-2">About</h2>
+                      <p className="text-muted-foreground">{profile.bio}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="lg:col-span-2">
+                <div className="bg-card p-6 rounded-lg shadow-lg">
+                  <h2 className="text-2xl font-bold mb-6">Gallery</h2>
+                  
+                  {profile.images.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold mb-4">Photos</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {profile.images.map((image, index) => (
+                          <BlurredContent
+                            key={image.id}
+                            profileId={profile.id}
+                            itemIndex={index}
+                            itemType="photo"
+                            price={getItemPrice(index, 'photo')}
+                            onPurchase={() => addToCart(index, 'photo')}
+                            className="aspect-square"
+                          >
+                            <img
+                              src={image.url}
+                              alt={`${profile.name} photo ${index + 1}`}
+                              className="w-full h-full object-cover rounded-lg cursor-pointer hover:scale-105 transition-transform"
+                              onClick={() => setSelectedImage(image.url)}
+                            />
+                          </BlurredContent>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {profile.videos.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Videos</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {profile.videos.map((video, index) => (
+                          <BlurredContent
+                            key={video.id}
+                            profileId={profile.id}
+                            itemIndex={index}
+                            itemType="video"
+                            price={getItemPrice(index, 'video')}
+                            onPurchase={() => addToCart(index, 'video')}
+                            className="aspect-video"
+                          >
+                            <video src={video.url} className="w-full h-full object-cover rounded-lg" controls />
+                          </BlurredContent>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-      </main>
+        <PaymentModal
+          isOpen={paymentModalOpen}
+          onClose={() => setPaymentModalOpen(false)}
+          items={cartItems}
+          onSuccess={() => {
+            setCartItems([]);
+            toast({ title: "Purchase Successful!", description: "Your content has been unlocked." });
+            window.location.reload();
+          }}
+        />
+      </div>
     </div>
   );
 };
