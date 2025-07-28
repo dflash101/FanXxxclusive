@@ -22,7 +22,6 @@ export const useSupabaseProfiles = () => {
         const profileImages: ProfileImage[] = (profile.image_urls || []).map((url: string, index: number) => ({
           id: `${profile.id}-${index}`,
           url,
-          isLocked: !profile.is_unlocked,
           isCover: index === 0
         }));
 
@@ -30,7 +29,6 @@ export const useSupabaseProfiles = () => {
         const profileVideos: ProfileVideo[] = (profile.video_urls || []).map((url: string, index: number) => ({
           id: `${profile.id}-video-${index}`,
           url,
-          isLocked: !profile.is_unlocked,
           isCover: index === 0
         }));
 
@@ -43,12 +41,6 @@ export const useSupabaseProfiles = () => {
           description: profile.bio || undefined,
           images: profileImages,
           videos: profileVideos,
-          isUnlocked: profile.is_unlocked || false,
-          unlockPrice: Number(profile.unlock_price) || 19.99,
-          photoPrice: Number(profile.photo_price) || 4.99,
-          packagePrice: Number(profile.package_price) || 19.99,
-          videoPrice: Number(profile.video_price) || 9.99,
-          videoPackagePrice: Number(profile.video_package_price) || 39.99,
           createdAt: profile.created_at
         };
       });
@@ -77,13 +69,7 @@ export const useSupabaseProfiles = () => {
           location: profile.location,
           bio: profile.bio || profile.description,
           image_urls: imageUrls,
-          video_urls: videoUrls,
-          is_unlocked: profile.isUnlocked || false,
-          unlock_price: profile.unlockPrice || 19.99,
-          photo_price: profile.photoPrice || 4.99,
-          package_price: profile.packagePrice || 19.99,
-          video_price: profile.videoPrice || 9.99,
-          video_package_price: profile.videoPackagePrice || 39.99
+          video_urls: videoUrls
         })
         .select()
         .single();
@@ -93,14 +79,12 @@ export const useSupabaseProfiles = () => {
       const profileImages: ProfileImage[] = (data.image_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-${index}`,
         url,
-        isLocked: !data.is_unlocked,
         isCover: index === 0
       }));
 
       const profileVideos: ProfileVideo[] = (data.video_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-video-${index}`,
         url,
-        isLocked: !data.is_unlocked,
         isCover: index === 0
       }));
 
@@ -113,12 +97,6 @@ export const useSupabaseProfiles = () => {
         description: data.bio || undefined,
         images: profileImages,
         videos: profileVideos,
-        isUnlocked: data.is_unlocked || false,
-        unlockPrice: Number(data.unlock_price) || 19.99,
-        photoPrice: Number(data.photo_price) || 4.99,
-        packagePrice: Number(data.package_price) || 19.99,
-        videoPrice: Number(data.video_price) || 9.99,
-        videoPackagePrice: Number(data.video_package_price) || 39.99,
         createdAt: data.created_at
       };
 
@@ -144,13 +122,7 @@ export const useSupabaseProfiles = () => {
           location: profile.location,
           bio: profile.bio || profile.description,
           image_urls: imageUrls,
-          video_urls: videoUrls,
-          is_unlocked: profile.isUnlocked || false,
-          unlock_price: profile.unlockPrice || 19.99,
-          photo_price: profile.photoPrice || 4.99,
-          package_price: profile.packagePrice || 19.99,
-          video_price: profile.videoPrice || 9.99,
-          video_package_price: profile.videoPackagePrice || 39.99
+          video_urls: videoUrls
         })
         .eq('id', profile.id)
         .select()
@@ -161,14 +133,12 @@ export const useSupabaseProfiles = () => {
       const profileImages: ProfileImage[] = (data.image_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-${index}`,
         url,
-        isLocked: !data.is_unlocked,
         isCover: index === 0
       }));
 
       const profileVideos: ProfileVideo[] = (data.video_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-video-${index}`,
         url,
-        isLocked: !data.is_unlocked,
         isCover: index === 0
       }));
 
@@ -181,12 +151,6 @@ export const useSupabaseProfiles = () => {
         description: data.bio || undefined,
         images: profileImages,
         videos: profileVideos,
-        isUnlocked: data.is_unlocked || false,
-        unlockPrice: Number(data.unlock_price) || 19.99,
-        photoPrice: Number(data.photo_price) || 4.99,
-        packagePrice: Number(data.package_price) || 19.99,
-        videoPrice: Number(data.video_price) || 9.99,
-        videoPackagePrice: Number(data.video_package_price) || 39.99,
         createdAt: data.created_at
       };
 

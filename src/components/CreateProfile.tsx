@@ -28,7 +28,6 @@ const CreateProfile = ({ onClose, onCreate }: CreateProfileProps) => {
         const newImage: ProfileImage = {
           id: Date.now().toString() + Math.random(),
           url: compressedUrl,
-          isLocked: false,
           isCover: images.length === 0
         };
 

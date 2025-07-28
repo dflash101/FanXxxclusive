@@ -28,14 +28,12 @@ const ProfileView = () => {
       const profileImages: ProfileImage[] = (data.image_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-${index}`,
         url,
-        isLocked: false,
         isCover: index === 0
       }));
 
       const profileVideos: ProfileVideo[] = (data.video_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-video-${index}`,
         url,
-        isLocked: false,
         isCover: index === 0
       }));
 
@@ -48,12 +46,6 @@ const ProfileView = () => {
         description: data.bio || undefined,
         images: profileImages,
         videos: profileVideos,
-        isUnlocked: true,
-        unlockPrice: 0,
-        photoPrice: 0,
-        packagePrice: 0,
-        videoPrice: 0,
-        videoPackagePrice: 0,
         createdAt: data.created_at
       };
 
