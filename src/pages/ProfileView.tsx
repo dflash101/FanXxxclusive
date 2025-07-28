@@ -222,11 +222,11 @@ const ProfileView = () => {
             className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setSelectedImage(null)}
           >
-            <div className="relative max-w-4xl max-h-full">
+            <div className="relative w-full h-full max-w-7xl max-h-full flex items-center justify-center">
               <img
                 src={selectedImage}
                 alt="Full size"
-                className="max-w-full max-h-full object-contain rounded-lg"
+                className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg"
                 onClick={(e) => e.stopPropagation()}
               />
               <Button

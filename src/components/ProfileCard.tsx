@@ -13,7 +13,6 @@ interface ProfileCardProps {
 
 const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
   const [showPayment, setShowPayment] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const coverImage = profile.images.find(img => img.isCover) || profile.images[0];
   const lockedCount = profile.images.filter(img => img.isLocked && !img.isCover).length; // Don't count cover as locked
@@ -60,15 +59,14 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
           {profile.images.slice(0, 6).map((image) => (
             <div
               key={image.id}
-              className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer ${
+              className={`relative aspect-square rounded-lg overflow-hidden ${
                 image.isLocked && !isUnlocked && !image.isCover ? 'filter blur-md' : ''
               }`}
-              onClick={() => setSelectedImage(image.url)}
             >
               <img
                 src={image.url}
                 alt=""
-                className="w-full h-full object-cover hover:scale-110 transition-transform duration-200"
+                className="w-full h-full object-cover"
               />
               {image.isLocked && !isUnlocked && !image.isCover && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -131,19 +129,6 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
         </div>
       )}
 
-      {/* Image Modal */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <img
-            src={selectedImage}
-            alt=""
-            className="max-w-full max-h-full object-contain rounded-lg"
-          />
-        </div>
-      )}
     </div>
   );
 };
