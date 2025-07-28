@@ -10,8 +10,6 @@ import { PurchasedContentViewer } from '@/components/PurchasedContentViewer';
 import { useItemPrices } from '@/hooks/useItemPrices';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { AdminPricingControls } from '@/components/AdminPricingControls';
-import { PaymentSystemTester } from '@/components/PaymentSystemTester';
 import type { Profile } from '@/types/Profile';
 
 export const ProfileView: React.FC = () => {
@@ -23,8 +21,6 @@ export const ProfileView: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [showPurchasedContent, setShowPurchasedContent] = useState(false);
-  const [showAdminControls, setShowAdminControls] = useState(false);
-  const [showSystemTester, setShowSystemTester] = useState(false);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -143,22 +139,6 @@ export const ProfileView: React.FC = () => {
           </Button>
           
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowAdminControls(!showAdminControls)}
-              className="gap-2"
-            >
-              Admin Controls
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => setShowSystemTester(!showSystemTester)}
-              className="gap-2"
-            >
-              System Tests
-            </Button>
-            
             {user && (
               <Button
                 variant="outline"
@@ -182,15 +162,7 @@ export const ProfileView: React.FC = () => {
           </div>
         </div>
 
-        {showAdminControls ? (
-          <div className="max-w-6xl mx-auto">
-            <AdminPricingControls profile={profile} />
-          </div>
-        ) : showSystemTester ? (
-          <div className="max-w-6xl mx-auto">
-            <PaymentSystemTester />
-          </div>
-        ) : showPurchasedContent ? (
+        {showPurchasedContent ? (
           <div className="max-w-6xl mx-auto">
             <PurchasedContentViewer />
           </div>

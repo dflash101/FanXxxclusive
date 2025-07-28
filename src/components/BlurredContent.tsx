@@ -24,6 +24,11 @@ export const BlurredContent: React.FC<BlurredContentProps> = ({
 }) => {
   const { hasPurchased, loading } = usePurchaseStatus(profileId, itemIndex, itemType);
 
+  // Cover items (index 0) are always unlocked
+  if (itemIndex === 0) {
+    return <div className={className}>{children}</div>;
+  }
+
   if (loading) {
     return (
       <div className={`relative ${className}`}>
@@ -44,13 +49,13 @@ export const BlurredContent: React.FC<BlurredContentProps> = ({
         className="absolute inset-0 backdrop-blur-md bg-background/30 rounded-lg flex flex-col items-center justify-center"
         style={{ backdropFilter: 'blur(10px)' }}
       >
-        <div className="bg-background/90 p-4 rounded-lg text-center shadow-lg border">
-          <Lock className="w-8 h-8 mx-auto mb-2 text-primary" />
-          <p className="text-sm font-medium mb-2">
-            {itemType === 'photo' ? 'Photo' : 'Video'} Locked
+        <div className="bg-background/90 p-2 rounded-md text-center shadow-md border max-w-[120px]">
+          <Lock className="w-4 h-4 mx-auto mb-1 text-primary" />
+          <p className="text-xs font-medium mb-1">
+            Locked
           </p>
           {price && (
-            <p className="text-lg font-bold text-primary mb-3">
+            <p className="text-sm font-bold text-primary mb-1">
               ${(price / 100).toFixed(2)}
             </p>
           )}
@@ -58,10 +63,10 @@ export const BlurredContent: React.FC<BlurredContentProps> = ({
             <Button 
               onClick={onPurchase}
               size="sm"
-              className="gap-2"
+              className="gap-1 h-6 px-2 text-xs"
             >
-              <ShoppingCart className="w-4 h-4" />
-              Purchase
+              <ShoppingCart className="w-3 h-3" />
+              Buy
             </Button>
           )}
         </div>
