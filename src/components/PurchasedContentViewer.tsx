@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Download, Play, Image as ImageIcon } from 'lucide-react';
-import { useUserPurchases } from '@/hooks/usePurchaseStatus';
 
 export const PurchasedContentViewer: React.FC = () => {
-  const { purchases, loading } = useUserPurchases();
+  // const { purchases, loading } = useUserPurchases();
+  const purchases: any[] = [];
+  const loading = false;
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   if (loading) {

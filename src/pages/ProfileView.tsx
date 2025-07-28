@@ -3,11 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { BlurredContent } from '@/components/BlurredContent';
-import { ShoppingCart, type CartItem } from '@/components/ShoppingCart';
-import { PaymentModal } from '@/components/PaymentModal';
 import { PurchasedContentViewer } from '@/components/PurchasedContentViewer';
-import { useItemPrices } from '@/hooks/useItemPrices';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { Profile } from '@/types/Profile';
@@ -18,13 +14,10 @@ export const ProfileView: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [showPurchasedContent, setShowPurchasedContent] = useState(false);
   
   const { user } = useAuth();
   const { toast } = useToast();
-  const { getItemPrice } = useItemPrices(id || '');
 
   const loadProfile = async () => {
     if (!id) return;
@@ -73,42 +66,6 @@ export const ProfileView: React.FC = () => {
     }
   };
 
-  const addToCart = (itemIndex: number, itemType: 'photo' | 'video') => {
-    if (!profile || !user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to purchase content.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const price = getItemPrice(itemIndex, itemType);
-    const imageUrl = itemType === 'photo' ? profile.images[itemIndex]?.url : undefined;
-
-    const cartItem: CartItem = {
-      profileId: profile.id,
-      profileName: profile.name,
-      itemIndex,
-      itemType,
-      price,
-      imageUrl
-    };
-
-    const exists = cartItems.some(item => 
-      item.profileId === cartItem.profileId && 
-      item.itemIndex === cartItem.itemIndex && 
-      item.itemType === cartItem.itemType
-    );
-
-    if (exists) {
-      toast({ title: "Already in Cart", description: "This item is already in your cart." });
-      return;
-    }
-
-    setCartItems(prev => [...prev, cartItem]);
-    toast({ title: "Added to Cart", description: `${itemType === 'photo' ? 'Photo' : 'Video'} #${itemIndex + 1} added to cart.` });
-  };
 
   useEffect(() => {
     loadProfile();
@@ -148,17 +105,6 @@ export const ProfileView: React.FC = () => {
                 My Purchases
               </Button>
             )}
-            
-            <ShoppingCart
-              items={cartItems}
-              onRemoveItem={(profileId, itemIndex, itemType) => 
-                setCartItems(prev => prev.filter(item => 
-                  !(item.profileId === profileId && item.itemIndex === itemIndex && item.itemType === itemType)
-                ))
-              }
-              onCheckout={() => setPaymentModalOpen(true)}
-              onClearCart={() => setCartItems([])}
-            />
           </div>
         </div>
 
@@ -192,22 +138,19 @@ export const ProfileView: React.FC = () => {
                       <h3 className="text-lg font-semibold mb-4">Photos</h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {profile.images.map((image, index) => (
-                          <BlurredContent
-                            key={image.id}
-                            profileId={profile.id}
-                            itemIndex={index}
-                            itemType="photo"
-                            price={getItemPrice(index, 'photo')}
-                            onPurchase={() => addToCart(index, 'photo')}
-                            className="aspect-square"
-                          >
+                          <div key={image.id} className="aspect-square">
                             <img
                               src={image.url}
                               alt={`${profile.name} photo ${index + 1}`}
                               className="w-full h-full object-cover rounded-lg cursor-pointer hover:scale-105 transition-transform"
                               onClick={() => setSelectedImage(image.url)}
                             />
-                          </BlurredContent>
+                            {image.isCover && (
+                              <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 text-xs rounded">
+                                Cover
+                              </div>
+                            )}
+                          </div>
                         ))}
                        </div>
                     </div>
@@ -218,17 +161,14 @@ export const ProfileView: React.FC = () => {
                       <h3 className="text-lg font-semibold mb-4">Videos</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {profile.videos.map((video, index) => (
-                          <BlurredContent
-                            key={video.id}
-                            profileId={profile.id}
-                            itemIndex={index}
-                            itemType="video"
-                            price={getItemPrice(index, 'video')}
-                            onPurchase={() => addToCart(index, 'video')}
-                            className="aspect-video"
-                          >
+                          <div key={video.id} className="aspect-video relative">
                             <video src={video.url} className="w-full h-full object-cover rounded-lg" controls />
-                          </BlurredContent>
+                            {video.isCover && (
+                              <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 text-xs rounded">
+                                Cover
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -238,17 +178,6 @@ export const ProfileView: React.FC = () => {
             </div>
           </div>
         )}
-
-        <PaymentModal
-          isOpen={paymentModalOpen}
-          onClose={() => setPaymentModalOpen(false)}
-          items={cartItems}
-          onSuccess={() => {
-            setCartItems([]);
-            toast({ title: "Purchase Successful!", description: "Your content has been unlocked." });
-            window.location.reload();
-          }}
-        />
       </div>
     </div>
   );

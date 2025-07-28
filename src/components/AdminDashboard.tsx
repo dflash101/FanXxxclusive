@@ -1,11 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { LogOut, Plus, Settings, TestTube } from 'lucide-react';
+import { LogOut, Plus } from 'lucide-react';
 import { Profile } from '@/types/Profile';
 import ProfileManager from './ProfileManager';
 import CreateProfile from './CreateProfile';
-import { AdminPricingControls } from './AdminPricingControls';
-import { PaymentSystemTester } from './PaymentSystemTester';
 import { useSupabaseProfiles } from '@/hooks/useSupabaseProfiles';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,7 +15,6 @@ interface AdminDashboardProps {
 const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   const { profiles, loading, createProfile, updateProfile, deleteProfile } = useSupabaseProfiles();
   const [showCreateProfile, setShowCreateProfile] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const { toast } = useToast();
 
   const handleCreateProfile = async (newProfile: Profile) => {
@@ -102,10 +99,8 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="profiles" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-gray-800/50">
+          <TabsList className="grid w-full grid-cols-1 bg-gray-800/50">
             <TabsTrigger value="profiles" className="text-white data-[state=active]:bg-purple-600">Profiles</TabsTrigger>
-            <TabsTrigger value="pricing" className="text-white data-[state=active]:bg-purple-600">Pricing Controls</TabsTrigger>
-            <TabsTrigger value="testing" className="text-white data-[state=active]:bg-purple-600">System Tests</TabsTrigger>
           </TabsList>
           
           <TabsContent value="profiles" className="mt-6">
@@ -131,51 +126,6 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                 ))}
               </div>
             )}
-          </TabsContent>
-          
-          <TabsContent value="pricing" className="mt-6">
-            {profiles.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-400 text-lg mb-4">No profiles available</p>
-                <p className="text-gray-500">Create a profile first to manage pricing</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="bg-gray-800/30 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-white mb-4">Select Profile for Pricing</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {profiles.map((profile) => (
-                      <button
-                        key={profile.id}
-                        onClick={() => setSelectedProfile(profile)}
-                        className={`p-4 rounded-lg border transition-all ${
-                          selectedProfile?.id === profile.id 
-                            ? 'border-purple-500 bg-purple-600/20' 
-                            : 'border-gray-600 bg-gray-700/30 hover:border-purple-400'
-                        }`}
-                      >
-                        <h4 className="text-white font-medium">{profile.name}</h4>
-                        <p className="text-gray-400 text-sm mt-1">
-                          {profile.images.length} photos, {profile.videos.length} videos
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                {selectedProfile && (
-                  <div className="bg-gray-900/50 rounded-lg">
-                    <AdminPricingControls profile={selectedProfile} />
-                  </div>
-                )}
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="testing" className="mt-6">
-            <div className="bg-gray-900/50 rounded-lg">
-              <PaymentSystemTester />
-            </div>
           </TabsContent>
         </Tabs>
       </main>
