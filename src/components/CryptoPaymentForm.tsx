@@ -12,6 +12,7 @@ interface CryptoPaymentFormProps {
   unlockType: string;
   onSuccess: (paymentId: string) => void;
   onError: (error: string) => void;
+  itemId?: string;
 }
 
 const cryptoCurrencies = [
@@ -44,7 +45,7 @@ const cryptoCurrencies = [
   }
 ];
 
-export const CryptoPaymentForm = ({ profileId, amount, unlockType, onSuccess, onError }: CryptoPaymentFormProps) => {
+export const CryptoPaymentForm = ({ profileId, amount, unlockType, onSuccess, onError, itemId }: CryptoPaymentFormProps) => {
   const [selectedCrypto, setSelectedCrypto] = useState(cryptoCurrencies[0]);
   const [walletConnected, setWalletConnected] = useState(false);
   const { toast } = useToast();

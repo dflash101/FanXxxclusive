@@ -6,13 +6,17 @@ interface UnlockStatus {
   photos: boolean;
   videos: boolean;
   profile: boolean;
+  unlockedPhotos: string[];
+  unlockedVideos: string[];
 }
 
 export const useUnlockStatus = (profileId: string) => {
   const [unlockStatus, setUnlockStatus] = useState<UnlockStatus>({
     photos: false,
     videos: false,
-    profile: false
+    profile: false,
+    unlockedPhotos: [],
+    unlockedVideos: []
   });
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -42,7 +46,9 @@ export const useUnlockStatus = (profileId: string) => {
       setUnlockStatus(data.unlocks || {
         photos: false,
         videos: false,
-        profile: false
+        profile: false,
+        unlockedPhotos: [],
+        unlockedVideos: []
       });
     } catch (error) {
       console.error('Error fetching unlock status:', error);
@@ -50,7 +56,9 @@ export const useUnlockStatus = (profileId: string) => {
       setUnlockStatus({
         photos: false,
         videos: false,
-        profile: false
+        profile: false,
+        unlockedPhotos: [],
+        unlockedVideos: []
       });
     } finally {
       setLoading(false);

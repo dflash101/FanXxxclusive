@@ -18,15 +18,17 @@ interface SquarePaymentFormProps {
   onSuccess: (paymentId: string) => void;
   onError: (error: string) => void;
   onStatusChange: (status: 'idle' | 'processing' | 'success' | 'error') => void;
+  itemId?: string;
 }
 
 export const SquarePaymentForm = ({ 
   profileId, 
-  amount, 
+  amount,
   unlockType, 
   onSuccess, 
   onError, 
-  onStatusChange 
+  onStatusChange,
+  itemId
 }: SquarePaymentFormProps) => {
   const [squareConfig, setSquareConfig] = useState<any>(null);
   const [payments, setPayments] = useState<any>(null);

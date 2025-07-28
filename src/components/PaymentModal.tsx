@@ -16,6 +16,7 @@ interface PaymentModalProps {
   amount: number;
   unlockType: string;
   onSuccess: () => void;
+  itemId?: string;
 }
 
 interface PaymentMethod {
@@ -26,7 +27,7 @@ interface PaymentMethod {
   config: any;
 }
 
-export const PaymentModal = ({ isOpen, onClose, profileId, amount, unlockType, onSuccess }: PaymentModalProps) => {
+export const PaymentModal = ({ isOpen, onClose, profileId, amount, unlockType, onSuccess, itemId }: PaymentModalProps) => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMethod, setSelectedMethod] = useState<string>('square');
@@ -109,6 +110,8 @@ export const PaymentModal = ({ isOpen, onClose, profileId, amount, unlockType, o
       case 'photos': return 'Photo Gallery';
       case 'videos': return 'Video Collection';
       case 'profile': return 'Full Profile';
+      case 'single-photo': return 'Single Photo';
+      case 'single-video': return 'Single Video';
       default: return 'Content';
     }
   };
@@ -191,6 +194,7 @@ export const PaymentModal = ({ isOpen, onClose, profileId, amount, unlockType, o
                   onSuccess={handlePaymentSuccess}
                   onError={handlePaymentError}
                   onStatusChange={setPaymentStatus}
+                  itemId={itemId}
                 />
               </TabsContent>
 
@@ -201,6 +205,7 @@ export const PaymentModal = ({ isOpen, onClose, profileId, amount, unlockType, o
                   unlockType={unlockType}
                   onSuccess={handlePaymentSuccess}
                   onError={handlePaymentError}
+                  itemId={itemId}
                 />
               </TabsContent>
             </Tabs>
