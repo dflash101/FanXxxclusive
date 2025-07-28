@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, CreditCard, Shield } from 'lucide-react';
+import { Loader2, CreditCard, Shield, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,46 +35,109 @@ export const SquarePaymentForm = ({
   const [card, setCard] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [initializationError, setInitializationError] = useState<string>('');
   const cardContainer = useRef<HTMLDivElement>(null);
+  const squareInstance = useRef<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     initializeSquare();
+    
+    return () => {
+      // Cleanup Square instances on unmount
+      if (card) {
+        try {
+          card.destroy();
+        } catch (error) {
+          console.log('Card cleanup error:', error);
+        }
+      }
+      if (squareInstance.current) {
+        squareInstance.current = null;
+      }
+    };
+  }, []);
+
+  const waitForDOMElement = useCallback((maxAttempts = 20, interval = 100): Promise<HTMLElement> => {
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      
+      const checkElement = () => {
+        attempts++;
+        
+        if (cardContainer.current) {
+          console.log('DOM element found after', attempts, 'attempts');
+          resolve(cardContainer.current);
+          return;
+        }
+        
+        if (attempts >= maxAttempts) {
+          reject(new Error('DOM element not available after maximum attempts'));
+          return;
+        }
+        
+        setTimeout(checkElement, interval);
+      };
+      
+      checkElement();
+    });
   }, []);
 
   const initializeSquare = async () => {
     try {
+      setInitializationError('');
+      setLoading(true);
+      
+      console.log('Starting Square initialization...');
+      
       // Load Square Web SDK
       if (!window.Square) {
-        const script = document.createElement('script');
-        script.src = 'https://web.squarecdn.com/v1/square.js';
-        script.onload = () => {
-          loadSquareConfig();
-        };
-        document.head.appendChild(script);
-      } else {
-        loadSquareConfig();
+        console.log('Loading Square SDK...');
+        await loadSquareSDK();
       }
+      
+      console.log('Loading Square config...');
+      await loadSquareConfig();
     } catch (error) {
       console.error('Error initializing Square:', error);
-      onError('Failed to initialize payment system');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to initialize payment system';
+      setInitializationError(errorMessage);
+      onError(errorMessage);
       setLoading(false);
     }
   };
 
+  const loadSquareSDK = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://web.squarecdn.com/v1/square.js';
+      script.onload = () => {
+        console.log('Square SDK loaded successfully');
+        resolve();
+      };
+      script.onerror = () => {
+        reject(new Error('Failed to load Square SDK'));
+      };
+      document.head.appendChild(script);
+    });
+  };
+
   const loadSquareConfig = async () => {
     try {
+      console.log('Fetching Square configuration...');
       const { data, error } = await supabase.functions.invoke('get-square-config');
       
       if (error) throw error;
       if (data.error) throw new Error(data.error);
       
+      console.log('Square config loaded successfully');
       setSquareConfig(data);
       await initializePayments(data);
     } catch (error) {
       console.error('Error loading Square config:', error);
-      onError('Failed to load payment configuration');
-      setLoading(false);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load payment configuration';
+      setInitializationError(errorMessage);
+      throw error;
     }
   };
 
@@ -84,18 +147,54 @@ export const SquarePaymentForm = ({
         throw new Error('Square SDK not loaded');
       }
 
+      console.log('Initializing Square payments with config:', { 
+        applicationId: config.applicationId, 
+        locationId: config.locationId 
+      });
+
+      // Wait for DOM element to be available
+      console.log('Waiting for DOM element...');
+      const element = await waitForDOMElement();
+      
+      console.log('Creating Square payments instance...');
       const paymentsInstance = window.Square.payments(config.applicationId, config.locationId);
+      squareInstance.current = paymentsInstance;
       setPayments(paymentsInstance);
 
-      const cardInstance = await paymentsInstance.card();
-      await cardInstance.attach(cardContainer.current);
+      console.log('Creating card instance...');
+      const cardInstance = await paymentsInstance.card({
+        style: {
+          input: {
+            fontSize: '16px',
+            fontFamily: 'inherit',
+            color: 'hsl(var(--foreground))',
+            backgroundColor: 'hsl(var(--background))',
+          },
+          '.input-container': {
+            borderColor: 'hsl(var(--border))',
+            borderRadius: '8px',
+          },
+          '.input-container.is-focus': {
+            borderColor: 'hsl(var(--ring))',
+          },
+          '.input-container.is-error': {
+            borderColor: 'hsl(var(--destructive))',
+          }
+        }
+      });
+      
+      console.log('Attaching card to DOM element...');
+      await cardInstance.attach(element);
+      
+      console.log('Card attached successfully');
       setCard(cardInstance);
-
       setLoading(false);
     } catch (error) {
       console.error('Error initializing payments:', error);
-      onError('Failed to initialize payment form');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to initialize payment form';
+      setInitializationError(errorMessage);
       setLoading(false);
+      throw error;
     }
   };
 
@@ -186,6 +285,32 @@ export const SquarePaymentForm = ({
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin" />
           <span className="ml-2">Loading payment form...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (initializationError) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="flex items-center justify-center mb-4">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+          </div>
+          <div className="text-center">
+            <h3 className="font-semibold mb-2">Payment System Error</h3>
+            <p className="text-sm text-muted-foreground mb-4">{initializationError}</p>
+            <Button 
+              onClick={() => {
+                setInitializationError('');
+                initializeSquare();
+              }}
+              variant="outline"
+              size="sm"
+            >
+              Try Again
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );

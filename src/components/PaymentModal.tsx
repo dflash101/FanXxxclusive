@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -138,6 +138,12 @@ export const PaymentModal = ({ isOpen, onClose, profileId, amount, unlockType, o
             {paymentStatus === 'processing' && <Loader2 className="h-5 w-5 animate-spin" />}
             Unlock {formatUnlockType(unlockType)}
           </DialogTitle>
+          <DialogDescription>
+            {paymentStatus === 'success' && 'Your payment was processed successfully.'}
+            {paymentStatus === 'error' && 'There was an issue processing your payment.'}
+            {paymentStatus === 'processing' && 'Please wait while we process your payment.'}
+            {paymentStatus === 'idle' && `Complete your payment to unlock ${formatUnlockType(unlockType).toLowerCase()}.`}
+          </DialogDescription>
         </DialogHeader>
 
         {paymentStatus === 'success' && (
