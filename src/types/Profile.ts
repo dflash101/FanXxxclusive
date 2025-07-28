@@ -1,27 +1,18 @@
 
 export interface ProfileImage {
   id: string;
-  url: string;
-  isCover: boolean;
-  isLocked?: boolean;
-}
-
-export interface ProfileVideo {
-  id: string;
-  url: string;
-  isCover: boolean;
-  isLocked?: boolean;
-  thumbnail?: string;
+  profile_id: string;
+  image_url: string;
+  is_locked: boolean;
+  display_order: number;
 }
 
 export interface Profile {
   id: string;
   name: string;
-  age?: number;
-  location?: string;
-  bio?: string;
   description?: string;
-  images: ProfileImage[];
-  videos: ProfileVideo[];
-  createdAt?: string;
+  cover_image_url?: string;
+  created_at?: string;
+  updated_at?: string;
+  images?: ProfileImage[];
 }

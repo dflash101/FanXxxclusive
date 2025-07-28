@@ -14,256 +14,67 @@ export type Database = {
   }
   public: {
     Tables: {
-      item_prices: {
+      profile_images: {
         Row: {
           created_at: string
+          display_order: number
           id: string
-          item_index: number
-          item_type: Database["public"]["Enums"]["item_type"]
-          price_cents: number
+          image_url: string
+          is_locked: boolean
           profile_id: string
-          updated_at: string
         }
         Insert: {
           created_at?: string
+          display_order?: number
           id?: string
-          item_index: number
-          item_type: Database["public"]["Enums"]["item_type"]
-          price_cents: number
+          image_url: string
+          is_locked?: boolean
           profile_id: string
-          updated_at?: string
         }
         Update: {
           created_at?: string
+          display_order?: number
           id?: string
-          item_index?: number
-          item_type?: Database["public"]["Enums"]["item_type"]
-          price_cents?: number
+          image_url?: string
+          is_locked?: boolean
           profile_id?: string
-          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "item_prices_profile_id_fkey"
+            foreignKeyName: "profile_images_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
-      }
-      payments: {
-        Row: {
-          amount_cents: number
-          created_at: string
-          currency: string
-          id: string
-          square_payment_id: string | null
-          status: Database["public"]["Enums"]["payment_status"]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          amount_cents: number
-          created_at?: string
-          currency?: string
-          id?: string
-          square_payment_id?: string | null
-          status?: Database["public"]["Enums"]["payment_status"]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          amount_cents?: number
-          created_at?: string
-          currency?: string
-          id?: string
-          square_payment_id?: string | null
-          status?: Database["public"]["Enums"]["payment_status"]
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       profiles: {
         Row: {
-          age: number | null
-          bio: string | null
+          cover_image_url: string | null
           created_at: string
+          description: string | null
           id: string
-          image_urls: string[] | null
-          is_unlocked: boolean | null
-          location: string | null
-          locked_images: boolean[] | null
-          locked_videos: boolean[] | null
           name: string
-          package_price: number | null
-          photo_price: number | null
-          unlock_price: number | null
           updated_at: string
-          user_id: string | null
-          video_package_price: number | null
-          video_price: number | null
-          video_urls: string[] | null
         }
         Insert: {
-          age?: number | null
-          bio?: string | null
+          cover_image_url?: string | null
           created_at?: string
+          description?: string | null
           id?: string
-          image_urls?: string[] | null
-          is_unlocked?: boolean | null
-          location?: string | null
-          locked_images?: boolean[] | null
-          locked_videos?: boolean[] | null
           name: string
-          package_price?: number | null
-          photo_price?: number | null
-          unlock_price?: number | null
           updated_at?: string
-          user_id?: string | null
-          video_package_price?: number | null
-          video_price?: number | null
-          video_urls?: string[] | null
         }
         Update: {
-          age?: number | null
-          bio?: string | null
+          cover_image_url?: string | null
           created_at?: string
+          description?: string | null
           id?: string
-          image_urls?: string[] | null
-          is_unlocked?: boolean | null
-          location?: string | null
-          locked_images?: boolean[] | null
-          locked_videos?: boolean[] | null
           name?: string
-          package_price?: number | null
-          photo_price?: number | null
-          unlock_price?: number | null
           updated_at?: string
-          user_id?: string | null
-          video_package_price?: number | null
-          video_price?: number | null
-          video_urls?: string[] | null
         }
         Relationships: []
-      }
-      purchased_items: {
-        Row: {
-          created_at: string
-          id: string
-          item_index: number
-          item_type: Database["public"]["Enums"]["item_type"]
-          payment_id: string
-          price_cents: number
-          profile_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          item_index: number
-          item_type: Database["public"]["Enums"]["item_type"]
-          payment_id: string
-          price_cents: number
-          profile_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          item_index?: number
-          item_type?: Database["public"]["Enums"]["item_type"]
-          payment_id?: string
-          price_cents?: number
-          profile_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "purchased_items_payment_id_fkey"
-            columns: ["payment_id"]
-            isOneToOne: false
-            referencedRelation: "payments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchased_items_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          full_name: string | null
-          id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_purchases: {
-        Row: {
-          id: string
-          item_index: number
-          item_type: Database["public"]["Enums"]["item_type"]
-          payment_id: string
-          profile_id: string
-          purchased_at: string
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          item_index: number
-          item_type: Database["public"]["Enums"]["item_type"]
-          payment_id: string
-          profile_id: string
-          purchased_at?: string
-          user_id: string
-        }
-        Update: {
-          id?: string
-          item_index?: number
-          item_type?: Database["public"]["Enums"]["item_type"]
-          payment_id?: string
-          profile_id?: string
-          purchased_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_purchases_payment_id_fkey"
-            columns: ["payment_id"]
-            isOneToOne: false
-            referencedRelation: "payments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_purchases_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
