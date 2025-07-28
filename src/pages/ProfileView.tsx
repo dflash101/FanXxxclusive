@@ -33,14 +33,14 @@ const ProfileView = () => {
       const profileImages: ProfileImage[] = (data.image_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-${index}`,
         url,
-        isLocked: false, // All images are now unlocked
+        isLocked: true, // Photos are locked until purchased
         isCover: index === 0
       }));
 
       const profileVideos: ProfileVideo[] = (data.video_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-video-${index}`,
         url,
-        isLocked: false, // All videos are now unlocked
+        isLocked: true, // Videos are locked until purchased
         isCover: index === 0
       }));
 
@@ -53,7 +53,7 @@ const ProfileView = () => {
         description: data.bio || undefined,
         images: profileImages,
         videos: profileVideos,
-        isUnlocked: true, // All profiles are now unlocked
+        isUnlocked: false, // Profile content is locked
         unlockPrice: Number(data.unlock_price) || 19.99,
         photoPrice: Number(data.photo_price) || 4.99,
         packagePrice: Number(data.package_price) || 19.99,
@@ -160,10 +160,34 @@ const ProfileView = () => {
                   </div>
                 </div>
 
-                <div className="w-full mt-6 bg-green-600/20 border border-green-600/30 rounded-lg p-3 flex items-center justify-center text-green-300">
-                  <Star className="w-4 h-4 mr-2" />
-                  All Content Available
-                </div>
+                {(unlockStatus.photos || unlockStatus.videos) ? (
+                  <div className="w-full mt-6 bg-green-600/20 border border-green-600/30 rounded-lg p-3 flex items-center justify-center text-green-300">
+                    <Star className="w-4 h-4 mr-2" />
+                    {unlockStatus.photos && unlockStatus.videos ? 'All Content Unlocked' : 
+                     unlockStatus.photos ? 'Photos Unlocked' : 'Videos Unlocked'}
+                  </div>
+                ) : (
+                  <div className="w-full mt-6 space-y-2">
+                    <Button 
+                      onClick={() => {
+                        setPaymentType('photos');
+                        setShowPaymentModal(true);
+                      }}
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    >
+                      Unlock All Photos ${profile.packagePrice || 19.99}
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setPaymentType('videos');
+                        setShowPaymentModal(true);
+                      }}
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    >
+                      Unlock All Videos ${profile.videoPackagePrice || 39.99}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -174,26 +198,35 @@ const ProfileView = () => {
             <div>
               <h3 className="text-xl font-semibold text-white mb-4">Photos</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {profile.images.map((image, index) => (
-                  <div key={image.id} className="relative group">
-                    <div 
-                      className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer border border-gray-700 hover:border-gray-600 transition-all duration-300"
-                      onClick={() => setSelectedImage(image.url)}
-                    >
-                      <img
-                        src={image.url}
-                        alt={`${profile.name} photo ${index + 1}`}
-                        className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
-                      />
-                      
-                      {image.isCover && (
-                        <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm rounded-full p-2">
-                          <Star className="w-4 h-4 text-yellow-400" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                 {profile.images.map((image, index) => (
+                   <div key={image.id} className="relative group">
+                     <div 
+                       className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer border border-gray-700 hover:border-gray-600 transition-all duration-300"
+                       onClick={() => unlockStatus.photos ? setSelectedImage(image.url) : null}
+                     >
+                       <img
+                         src={image.url}
+                         alt={`${profile.name} photo ${index + 1}`}
+                         className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
+                       />
+                       
+                       {image.isCover && (
+                         <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm rounded-full p-2">
+                           <Star className="w-4 h-4 text-yellow-400" />
+                         </div>
+                       )}
+                       
+                       {image.isLocked && !unlockStatus.photos && (
+                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                           <div className="text-white text-center">
+                             <Lock className="h-6 w-6 mx-auto mb-2" />
+                             <p className="text-xs">Locked</p>
+                           </div>
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 ))}
               </div>
             </div>
 
@@ -202,18 +235,27 @@ const ProfileView = () => {
               <div>
                 <h3 className="text-xl font-semibold text-white mb-4">Videos</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {profile.videos.map((video, index) => (
-                    <div key={video.id} className="relative group">
-                      <div className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300">
-                        <video
-                          src={video.url}
-                          className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
-                          controls
-                          preload="metadata"
-                        />
-                      </div>
-                    </div>
-                  ))}
+                   {profile.videos.map((video, index) => (
+                     <div key={video.id} className="relative group">
+                       <div className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300">
+                         <video
+                           src={video.url}
+                           className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
+                           controls={unlockStatus.videos}
+                           preload="metadata"
+                         />
+                         
+                         {video.isLocked && !unlockStatus.videos && (
+                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                             <div className="text-white text-center">
+                               <Lock className="h-6 w-6 mx-auto mb-2" />
+                               <p className="text-xs">Locked</p>
+                             </div>
+                           </div>
+                         )}
+                       </div>
+                     </div>
+                   ))}
                 </div>
               </div>
             )}
@@ -249,7 +291,7 @@ const ProfileView = () => {
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
           profileId={profile.id}
-          amount={paymentType === 'photos' ? (profile.photoPrice || 4.99) : (profile.videoPrice || 9.99)}
+          amount={paymentType === 'photos' ? (profile.packagePrice || 19.99) : (profile.videoPackagePrice || 39.99)}
           unlockType={paymentType}
           onSuccess={() => {
             refreshUnlockStatus();

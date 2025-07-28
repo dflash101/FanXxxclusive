@@ -106,7 +106,7 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
         isOpen={showPayment}
         onClose={() => setShowPayment(false)}
         profileId={profile.id}
-        amount={profile.photoPrice || 4.99}
+        amount={profile.packagePrice || 19.99}
         unlockType="photos"
         onSuccess={handlePaymentSuccess}
       />

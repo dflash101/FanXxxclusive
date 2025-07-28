@@ -80,15 +80,15 @@ export const CryptoPaymentForm = ({ profileId, amount, unlockType, onSuccess, on
   };
 
   return (
-    <Card>
+    <Card className="opacity-75">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Wallet className="h-5 w-5" />
+          <Bitcoin className="h-5 w-5" />
           Cryptocurrency Payment
-          <Badge variant="secondary">Coming Soon</Badge>
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Coming Soon</Badge>
         </CardTitle>
         <CardDescription>
-          Pay with your favorite cryptocurrency
+          Cryptocurrency payments will be available soon!
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -151,32 +151,22 @@ export const CryptoPaymentForm = ({ profileId, amount, unlockType, onSuccess, on
         </Tabs>
 
         <div className="space-y-3">
-          {!walletConnected ? (
-            <Button 
-              onClick={simulateWalletConnection}
-              variant="outline" 
-              className="w-full"
-              size="lg"
-            >
-              <Wallet className="mr-2 h-4 w-4" />
-              Connect Wallet (Demo)
-            </Button>
-          ) : (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 text-green-700">
-                <Wallet className="h-4 w-4" />
-                <span className="font-medium">Wallet Connected</span>
-              </div>
-            </div>
-          )}
-
           <Button 
-            onClick={simulatePayment}
-            disabled={!walletConnected}
-            className="w-full"
+            disabled={true}
+            variant="outline" 
+            className="w-full opacity-50 cursor-not-allowed"
             size="lg"
           >
-            Pay {cryptoAmount} {selectedCrypto.symbol}
+            <Wallet className="mr-2 h-4 w-4" />
+            Connect Wallet (Coming Soon)
+          </Button>
+
+          <Button 
+            disabled={true}
+            className="w-full opacity-50 cursor-not-allowed"
+            size="lg"
+          >
+            Pay {cryptoAmount} {selectedCrypto.symbol} (Coming Soon)
           </Button>
         </div>
 
