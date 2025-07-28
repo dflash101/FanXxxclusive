@@ -14,88 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      payments: {
-        Row: {
-          amount: number
-          created_at: string
-          id: string
-          payment_method: string
-          photo_id: string | null
-          profile_id: string | null
-          purchase_type: string | null
-          status: string | null
-          transaction_id: string | null
-          user_id: string | null
-          video_id: string | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          id?: string
-          payment_method: string
-          photo_id?: string | null
-          profile_id?: string | null
-          purchase_type?: string | null
-          status?: string | null
-          transaction_id?: string | null
-          user_id?: string | null
-          video_id?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          id?: string
-          payment_method?: string
-          photo_id?: string | null
-          profile_id?: string | null
-          purchase_type?: string | null
-          status?: string | null
-          transaction_id?: string | null
-          user_id?: string | null
-          video_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payments_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      photo_unlocks: {
-        Row: {
-          created_at: string
-          id: string
-          photo_index: number
-          profile_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          photo_index: number
-          profile_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          photo_index?: number
-          profile_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "photo_unlocks_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           age: number | null
@@ -179,38 +97,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      video_unlocks: {
-        Row: {
-          created_at: string
-          id: string
-          profile_id: string | null
-          user_id: string | null
-          video_index: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          profile_id?: string | null
-          user_id?: string | null
-          video_index: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          profile_id?: string | null
-          user_id?: string | null
-          video_index?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "video_unlocks_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {

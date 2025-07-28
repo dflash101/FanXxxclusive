@@ -1,33 +1,18 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile, ProfileImage, ProfileVideo } from '@/types/Profile';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import PaymentModal from '@/components/PaymentModal';
-import { usePhotoUnlocks } from '@/hooks/usePhotoUnlocks';
-import { useVideoUnlocks } from '@/hooks/useVideoUnlocks';
-import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { AuthGuard } from '@/components/AuthGuard';
-import { ArrowLeft, Lock, Unlock, Star, Eye, CreditCard } from 'lucide-react';
+import { ArrowLeft, Star } from 'lucide-react';
 
 const ProfileView = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [paymentModal, setPaymentModal] = useState<{
-    open: boolean;
-    type: 'photo' | 'package';
-    photoIndex?: number;
-    amount: number;
-  }>({ open: false, type: 'package', amount: 0 });
-
-  const { isPhotoUnlocked, unlockPhoto, getUnlockedPhotosForProfile } = usePhotoUnlocks(user?.id);
-  const { isVideoUnlocked } = useVideoUnlocks(user?.id);
 
   const loadProfile = async () => {
     if (!id) return;
@@ -44,14 +29,14 @@ const ProfileView = () => {
       const profileImages: ProfileImage[] = (data.image_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-${index}`,
         url,
-        isLocked: !data.is_unlocked && !isPhotoUnlocked(data.id, index) && index !== 0, // Cover photo (index 0) is always unlocked
+        isLocked: false, // All images are now unlocked
         isCover: index === 0
       }));
 
       const profileVideos: ProfileVideo[] = (data.video_urls || []).map((url: string, index: number) => ({
         id: `${data.id}-video-${index}`,
         url,
-        isLocked: !data.is_unlocked && !isVideoUnlocked(data.id, index) && index !== 0, // Cover video (index 0) is always unlocked
+        isLocked: false, // All videos are now unlocked
         isCover: index === 0
       }));
 
@@ -64,7 +49,7 @@ const ProfileView = () => {
         description: data.bio || undefined,
         images: profileImages,
         videos: profileVideos,
-        isUnlocked: data.is_unlocked || false,
+        isUnlocked: true, // All profiles are now unlocked
         unlockPrice: Number(data.unlock_price) || 19.99,
         photoPrice: Number(data.photo_price) || 4.99,
         packagePrice: Number(data.package_price) || 19.99,
@@ -81,45 +66,9 @@ const ProfileView = () => {
     }
   };
 
-  const handlePhotoUnlock = (photoIndex: number) => {
-    if (!profile) return;
-    
-    setPaymentModal({
-      open: true,
-      type: 'photo',
-      photoIndex,
-      amount: profile.photoPrice || 4.99
-    });
-  };
-
-  const handlePackageUnlock = () => {
-    if (!profile) return;
-    
-    setPaymentModal({
-      open: true,
-      type: 'package',
-      amount: profile.packagePrice || 19.99
-    });
-  };
-
-  const handlePaymentSuccess = async () => {
-    if (!profile) return;
-
-    if (paymentModal.type === 'photo' && paymentModal.photoIndex !== undefined) {
-      await unlockPhoto(profile.id, paymentModal.photoIndex);
-    } else if (paymentModal.type === 'package') {
-      for (let i = 0; i < profile.images.length; i++) {
-        await unlockPhoto(profile.id, i);
-      }
-    }
-    
-    setPaymentModal({ open: false, type: 'package', amount: 0 });
-    loadProfile();
-  };
-
   useEffect(() => {
     loadProfile();
-  }, [id, isPhotoUnlocked]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -165,10 +114,6 @@ const ProfileView = () => {
     );
   }
 
-  const unlockedCount = getUnlockedPhotosForProfile(profile.id).length;
-  const totalPhotos = profile.images.length;
-  const isFullyUnlocked = profile.isUnlocked || unlockedCount === totalPhotos;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       <Header />
@@ -201,36 +146,20 @@ const ProfileView = () => {
 
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm bg-gray-700/30 rounded-lg p-3">
-                    <span className="text-gray-300">Unlocked Photos:</span>
-                    <span className="text-white font-semibold">{unlockedCount}/{totalPhotos}</span>
+                    <span className="text-gray-300">Total Photos:</span>
+                    <span className="text-white font-semibold">{profile.images.length}</span>
                   </div>
                   
-                  <div className="text-sm space-y-2 bg-gray-700/30 rounded-lg p-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Single Photo:</span>
-                      <span className="text-white font-semibold">${profile.photoPrice?.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">All Photos:</span>
-                      <span className="text-white font-semibold">${profile.packagePrice?.toFixed(2)}</span>
-                    </div>
+                  <div className="flex justify-between text-sm bg-gray-700/30 rounded-lg p-3">
+                    <span className="text-gray-300">Total Videos:</span>
+                    <span className="text-white font-semibold">{profile.videos.length}</span>
                   </div>
                 </div>
 
-                {!isFullyUnlocked ? (
-                  <Button 
-                    onClick={handlePackageUnlock} 
-                    className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
-                  >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Unlock All Photos - ${profile.packagePrice?.toFixed(2)}
-                  </Button>
-                ) : (
-                  <div className="w-full mt-6 bg-green-600/20 border border-green-600/30 rounded-lg p-3 flex items-center justify-center text-green-300">
-                    <Unlock className="w-4 h-4 mr-2" />
-                    All Photos Unlocked
-                  </div>
-                )}
+                <div className="w-full mt-6 bg-green-600/20 border border-green-600/30 rounded-lg p-3 flex items-center justify-center text-green-300">
+                  <Star className="w-4 h-4 mr-2" />
+                  All Content Available
+                </div>
               </div>
             </div>
           </div>
@@ -241,23 +170,16 @@ const ProfileView = () => {
             <div>
               <h3 className="text-xl font-semibold text-white mb-4">Photos</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {profile.images.map((image, index) => {
-                const isUnlocked = profile.isUnlocked || isPhotoUnlocked(profile.id, index) || index === 0; // Cover photo always unlocked
-                
-                return (
+                {profile.images.map((image, index) => (
                   <div key={image.id} className="relative group">
                     <div 
                       className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden cursor-pointer border border-gray-700 hover:border-gray-600 transition-all duration-300"
-                      onClick={() => isUnlocked && setSelectedImage(image.url)}
+                      onClick={() => setSelectedImage(image.url)}
                     >
                       <img
                         src={image.url}
                         alt={`${profile.name} photo ${index + 1}`}
-                        className={`w-full h-full object-cover transition-all duration-300 ${
-                          isUnlocked 
-                            ? 'group-hover:scale-110' 
-                            : 'blur-md grayscale opacity-50'
-                        }`}
+                        className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
                       />
                       
                       {image.isCover && (
@@ -265,26 +187,9 @@ const ProfileView = () => {
                           <Star className="w-4 h-4 text-yellow-400" />
                         </div>
                       )}
-                      
-                      {!isUnlocked && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePhotoUnlock(index);
-                            }}
-                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 transition-all duration-200 transform hover:scale-105"
-                          >
-                            <Lock className="w-4 h-4 mr-2" />
-                            ${profile.photoPrice?.toFixed(2)}
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   </div>
-                );
-                })}
+                ))}
               </div>
             </div>
 
@@ -293,37 +198,18 @@ const ProfileView = () => {
               <div>
                 <h3 className="text-xl font-semibold text-white mb-4">Videos</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {profile.videos.map((video, index) => {
-                    const isUnlocked = profile.isUnlocked || isVideoUnlocked(profile.id, index) || index === 0; // Cover video always unlocked
-                    
-                    return (
-                      <div key={video.id} className="relative group">
-                        <div className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300">
-                          <video
-                            src={video.url}
-                            className={`w-full h-full object-cover transition-all duration-300 ${
-                              isUnlocked ? 'group-hover:scale-110' : 'blur-md grayscale opacity-50'
-                            }`}
-                            muted
-                            loop
-                            preload="metadata"
-                          />
-                          
-                          {!isUnlocked && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                              <Button
-                                size="sm"
-                                className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white border-0 transition-all duration-200 transform hover:scale-105"
-                              >
-                                <Lock className="w-4 h-4 mr-2" />
-                                ${profile.videoPrice?.toFixed(2)}
-                              </Button>
-                            </div>
-                          )}
-                        </div>
+                  {profile.videos.map((video, index) => (
+                    <div key={video.id} className="relative group">
+                      <div className="aspect-square bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300">
+                        <video
+                          src={video.url}
+                          className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
+                          controls
+                          preload="metadata"
+                        />
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -354,15 +240,6 @@ const ProfileView = () => {
             </div>
           </div>
         )}
-
-        <PaymentModal
-          isOpen={paymentModal.open}
-          onClose={() => setPaymentModal({ open: false, type: 'package', amount: 0 })}
-          onPaymentSuccess={handlePaymentSuccess}
-          profile={profile}
-          amount={paymentModal.amount}
-          purchaseType={paymentModal.type}
-        />
       </main>
     </div>
   );

@@ -1,13 +1,1 @@
 project_id = "bfaqvhycrxtniwxcatki"
-
-[functions.create-square-payment]
-verify_jwt = true
-
-[functions.verify-square-payment]
-verify_jwt = true
-
-[functions.verify-payment-status]
-verify_jwt = true
-
-[functions.get-square-config]
-verify_jwt = false

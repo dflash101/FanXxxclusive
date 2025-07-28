@@ -1,50 +1,12 @@
 
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProfileCard from '@/components/ProfileCard';
-import PaymentModal from '@/components/PaymentModal';
 import { Profile } from '@/types/Profile';
 import { useSupabaseProfiles } from '@/hooks/useSupabaseProfiles';
-import { usePhotoUnlocks } from '@/hooks/usePhotoUnlocks';
-import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
-import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const { profiles, loading } = useSupabaseProfiles();
-  const { user } = useAuth();
-  const { getUnlockedPhotosForProfile } = usePhotoUnlocks(user?.id);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [selectedProfileId, setSelectedProfileId] = useState<string>('');
-  const { toast } = useToast();
-
-  const handleUnlockProfile = (profileId: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to unlock profiles",
-        variant: "destructive",
-      });
-      return;
-    }
-    setSelectedProfileId(profileId);
-    setPaymentModalOpen(true);
-  };
-
-  const handlePaymentSuccess = () => {
-    toast({
-      title: "Payment Successful!",
-      description: "Profile unlocked successfully",
-      variant: "default",
-    });
-    setSelectedProfileId('');
-  };
-
-  const isProfileUnlocked = (profile: Profile) => {
-    if (!user) return false;
-    const unlockedPhotos = getUnlockedPhotosForProfile(profile.id);
-    return profile.isUnlocked || unlockedPhotos.length === profile.images.length;
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -76,25 +38,14 @@ const Index = () => {
               <ProfileCard
                 key={profile.id}
                 profile={profile}
-                isUnlocked={isProfileUnlocked(profile)}
-                onUnlock={() => handleUnlockProfile(profile.id)}
+                isUnlocked={true}
+                onUnlock={() => {}}
               />
             ))}
           </div>
         )}
       </main>
 
-      {/* Payment Modal */}
-      {selectedProfileId && (
-        <PaymentModal
-          isOpen={paymentModalOpen}
-          onClose={() => setPaymentModalOpen(false)}
-          onPaymentSuccess={handlePaymentSuccess}
-          profile={profiles.find(p => p.id === selectedProfileId)!}
-          amount={19.99}
-          purchaseType="package"
-        />
-      )}
     </div>
   );
 };

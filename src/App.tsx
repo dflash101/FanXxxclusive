@@ -8,9 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthGuard } from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
-import Payment from "./pages/Payment";
 import ProfileView from "./pages/ProfileView";
-import PurchasedItems from "./pages/PurchasedItems";
 import Auth from "./pages/Auth";
 import EmailVerifiedPage from "./pages/EmailVerifiedPage";
 import NotFound from "./pages/NotFound";
@@ -33,15 +31,9 @@ const App = () => (
             } />
             <Route path="/email-verified" element={<EmailVerifiedPage />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/payment" element={<Payment />} />
             <Route path="/profile/:id" element={
               <AuthGuard>
                 <ProfileView />
-              </AuthGuard>
-            } />
-            <Route path="/profile" element={
-              <AuthGuard>
-                <PurchasedItems />
               </AuthGuard>
             } />
             <Route path="*" element={<NotFound />} />
