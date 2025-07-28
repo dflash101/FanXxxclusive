@@ -41,9 +41,13 @@ export const SquarePaymentForm = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    initializeSquare();
+    // Delay initialization to ensure DOM is fully rendered
+    const timer = setTimeout(() => {
+      initializeSquare();
+    }, 100);
     
     return () => {
+      clearTimeout(timer);
       // Cleanup Square instances on unmount
       if (card) {
         try {
@@ -58,21 +62,25 @@ export const SquarePaymentForm = ({
     };
   }, []);
 
-  const waitForDOMElement = useCallback((maxAttempts = 20, interval = 100): Promise<HTMLElement> => {
+  const waitForDOMElement = useCallback((maxAttempts = 50, interval = 100): Promise<HTMLElement> => {
     return new Promise((resolve, reject) => {
       let attempts = 0;
       
       const checkElement = () => {
         attempts++;
         
-        if (cardContainer.current) {
-          console.log('DOM element found after', attempts, 'attempts');
+        // Check if element exists and is visible
+        if (cardContainer.current && cardContainer.current.offsetParent !== null) {
+          console.log('DOM element found and visible after', attempts, 'attempts');
           resolve(cardContainer.current);
           return;
         }
         
         if (attempts >= maxAttempts) {
-          reject(new Error('DOM element not available after maximum attempts'));
+          console.error('DOM element check failed after', attempts, 'attempts');
+          console.error('Element exists:', !!cardContainer.current);
+          console.error('Element visible:', cardContainer.current?.offsetParent !== null);
+          reject(new Error(`DOM element not available after ${maxAttempts} attempts`));
           return;
         }
         
@@ -332,6 +340,7 @@ export const SquarePaymentForm = ({
           ref={cardContainer}
           id="card-container"
           className="min-h-[120px] p-4 border rounded-lg bg-background"
+          style={{ visibility: 'visible', display: 'block' }}
         />
         
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
