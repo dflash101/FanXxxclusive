@@ -3,12 +3,14 @@ export interface ProfileImage {
   id: string;
   url: string;
   isCover: boolean;
+  isLocked?: boolean;
 }
 
 export interface ProfileVideo {
   id: string;
   url: string;
   isCover: boolean;
+  isLocked?: boolean;
   thumbnail?: string;
 }
 

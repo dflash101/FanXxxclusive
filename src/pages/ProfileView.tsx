@@ -47,11 +47,13 @@ export const ProfileView: React.FC = () => {
           id: `img-${index}`,
           url,
           isCover: index === 0,
+          isLocked: (data.locked_images || [])[index] || false,
         })),
         videos: (data.video_urls || []).map((url: string, index: number) => ({
           id: `vid-${index}`,
           url,
           isCover: index === 0,
+          isLocked: (data.locked_videos || [])[index] || false,
         })),
         createdAt: data.created_at,
       };
@@ -120,16 +122,28 @@ export const ProfileView: React.FC = () => {
                       <h3 className="text-lg font-semibold mb-4">Photos</h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {profile.images.map((image, index) => (
-                          <div key={image.id} className="aspect-square">
+                          <div key={image.id} className="aspect-square relative">
                             <img
                               src={image.url}
                               alt={`${profile.name} photo ${index + 1}`}
-                              className="w-full h-full object-cover rounded-lg cursor-pointer hover:scale-105 transition-transform"
-                              onClick={() => setSelectedImage(image.url)}
+                              className={`w-full h-full object-cover rounded-lg cursor-pointer hover:scale-105 transition-transform ${
+                                image.isLocked && !image.isCover ? 'blur-md' : ''
+                              }`}
+                              onClick={() => !image.isLocked && setSelectedImage(image.url)}
                             />
                             {image.isCover && (
                               <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 text-xs rounded">
                                 Cover
+                              </div>
+                            )}
+                            {image.isLocked && !image.isCover && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="bg-background/90 p-3 rounded-lg border shadow-lg">
+                                  <div className="text-center">
+                                    <div className="w-8 h-8 mx-auto mb-2 text-primary">🔒</div>
+                                    <p className="text-sm font-medium">Locked Content</p>
+                                  </div>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -144,10 +158,26 @@ export const ProfileView: React.FC = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {profile.videos.map((video, index) => (
                           <div key={video.id} className="aspect-video relative">
-                            <video src={video.url} className="w-full h-full object-cover rounded-lg" controls />
+                            <video 
+                              src={video.url} 
+                              className={`w-full h-full object-cover rounded-lg ${
+                                video.isLocked && !video.isCover ? 'blur-md' : ''
+                              }`} 
+                              controls={!video.isLocked || video.isCover}
+                            />
                             {video.isCover && (
                               <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 text-xs rounded">
                                 Cover
+                              </div>
+                            )}
+                            {video.isLocked && !video.isCover && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="bg-background/90 p-3 rounded-lg border shadow-lg">
+                                  <div className="text-center">
+                                    <div className="w-8 h-8 mx-auto mb-2 text-primary">🔒</div>
+                                    <p className="text-sm font-medium">Locked Content</p>
+                                  </div>
+                                </div>
                               </div>
                             )}
                           </div>

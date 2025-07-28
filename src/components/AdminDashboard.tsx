@@ -4,6 +4,7 @@ import { LogOut, Plus } from 'lucide-react';
 import { Profile } from '@/types/Profile';
 import ProfileManager from './ProfileManager';
 import CreateProfile from './CreateProfile';
+import { AdminImageLockControls } from './AdminImageLockControls';
 import { useSupabaseProfiles } from '@/hooks/useSupabaseProfiles';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,6 +15,7 @@ interface AdminDashboardProps {
 
 const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   const { profiles, loading, createProfile, updateProfile, deleteProfile } = useSupabaseProfiles();
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [showCreateProfile, setShowCreateProfile] = useState(false);
   const { toast } = useToast();
 
@@ -99,8 +101,9 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="profiles" className="w-full">
-          <TabsList className="grid w-full grid-cols-1 bg-gray-800/50">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-800/50">
             <TabsTrigger value="profiles" className="text-white data-[state=active]:bg-purple-600">Profiles</TabsTrigger>
+            <TabsTrigger value="locks" className="text-white data-[state=active]:bg-purple-600">Image Lock Controls</TabsTrigger>
           </TabsList>
           
           <TabsContent value="profiles" className="mt-6">
@@ -124,6 +127,51 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                     onDelete={handleDeleteProfile}
                   />
                 ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="locks" className="mt-6">
+            {profiles.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400 text-lg mb-4">No profiles available</p>
+                <p className="text-gray-500">Create a profile first to manage image locks</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="bg-gray-800/30 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-white mb-4">Select Profile for Lock Management</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {profiles.map((profile) => (
+                      <button
+                        key={profile.id}
+                        onClick={() => setSelectedProfile(profile)}
+                        className={`p-4 rounded-lg border transition-all ${
+                          selectedProfile?.id === profile.id 
+                            ? 'border-purple-500 bg-purple-600/20' 
+                            : 'border-gray-600 bg-gray-700/30 hover:border-purple-400'
+                        }`}
+                      >
+                        <h4 className="text-white font-medium">{profile.name}</h4>
+                        <p className="text-gray-400 text-sm mt-1">
+                          {profile.images.length} photos, {profile.videos.length} videos
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {selectedProfile && (
+                  <div className="bg-gray-900/50 rounded-lg">
+                    <AdminImageLockControls 
+                      profile={selectedProfile} 
+                      onUpdate={() => {
+                        // Refresh profiles data
+                        window.location.reload();
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>
