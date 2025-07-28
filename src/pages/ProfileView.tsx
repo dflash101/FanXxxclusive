@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { PurchasedContentViewer } from '@/components/PurchasedContentViewer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { Profile } from '@/types/Profile';
@@ -14,7 +13,6 @@ export const ProfileView: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [showPurchasedContent, setShowPurchasedContent] = useState(false);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -95,25 +93,9 @@ export const ProfileView: React.FC = () => {
             Back to Gallery
           </Button>
           
-          <div className="flex gap-2">
-            {user && (
-              <Button
-                variant="outline"
-                onClick={() => setShowPurchasedContent(!showPurchasedContent)}
-                className="gap-2"
-              >
-                My Purchases
-              </Button>
-            )}
-          </div>
         </div>
 
-        {showPurchasedContent ? (
-          <div className="max-w-6xl mx-auto">
-            <PurchasedContentViewer />
-          </div>
-        ) : (
-          <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-1">
                 <div className="bg-card p-6 rounded-lg shadow-lg">
@@ -177,9 +159,8 @@ export const ProfileView: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
-    </div>
   );
 };
 
