@@ -5,14 +5,18 @@ import { Profile, ProfileImage, ProfileVideo } from '@/types/Profile';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Header } from '@/components/Header';
-import { AuthGuard } from '@/components/AuthGuard';
-import { ArrowLeft, Star } from 'lucide-react';
+import { PaymentModal } from '@/components/PaymentModal';
+import { useUnlockStatus } from '@/hooks/useUnlockStatus';
+import { ArrowLeft, Star, Lock, Play } from 'lucide-react';
 
 const ProfileView = () => {
   const { id } = useParams<{ id: string }>();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentType, setPaymentType] = useState<'photos' | 'videos'>('photos');
+  const { unlockStatus, refreshUnlockStatus } = useUnlockStatus(id || '');
 
   const loadProfile = async () => {
     if (!id) return;
@@ -240,6 +244,18 @@ const ProfileView = () => {
             </div>
           </div>
         )}
+
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          profileId={profile.id}
+          amount={paymentType === 'photos' ? (profile.photoPrice || 4.99) : (profile.videoPrice || 9.99)}
+          unlockType={paymentType}
+          onSuccess={() => {
+            refreshUnlockStatus();
+            setShowPaymentModal(false);
+          }}
+        />
       </main>
     </div>
   );

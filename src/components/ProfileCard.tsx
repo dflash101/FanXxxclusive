@@ -4,25 +4,24 @@ import { Link } from 'react-router-dom';
 import { Lock, LockOpen, Star, CreditCard, Eye } from 'lucide-react';
 import { Profile } from '@/types/Profile';
 import { Button } from '@/components/ui/button';
+import { PaymentModal } from './PaymentModal';
+import { useUnlockStatus } from '@/hooks/useUnlockStatus';
 
 interface ProfileCardProps {
   profile: Profile;
-  isUnlocked: boolean;
-  onUnlock: () => void;
 }
 
-const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
+const ProfileCard = ({ profile }: ProfileCardProps) => {
   const [showPayment, setShowPayment] = useState(false);
+  const { unlockStatus, refreshUnlockStatus } = useUnlockStatus(profile.id);
 
   const coverImage = profile.images.find(img => img.isCover) || profile.images[0];
-  const lockedCount = profile.images.filter(img => img.isLocked && !img.isCover).length; // Don't count cover as locked
+  const lockedCount = profile.images.filter(img => img.isLocked && !img.isCover).length;
+  const isUnlocked = unlockStatus.photos;
 
-  const handlePayment = () => {
-    // Simulate payment process
-    setTimeout(() => {
-      onUnlock();
-      setShowPayment(false);
-    }, 1500);
+  const handlePaymentSuccess = () => {
+    refreshUnlockStatus();
+    setShowPayment(false);
   };
 
   return (
@@ -103,31 +102,14 @@ const ProfileCard = ({ profile, isUnlocked, onUnlock }: ProfileCardProps) => {
         </div>
       </div>
 
-      {/* Payment Modal */}
-      {showPayment && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700">
-            <h3 className="text-xl font-semibold text-white mb-4">Unlock Profile</h3>
-            <p className="text-gray-400 mb-6">
-              Unlock all {lockedCount} locked photos for {profile.name}
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowPayment(false)}
-                className="flex-1 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePayment}
-                className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
-              >
-                Pay ${profile.packagePrice?.toFixed(2) || '19.99'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PaymentModal
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        profileId={profile.id}
+        amount={profile.photoPrice || 4.99}
+        unlockType="photos"
+        onSuccess={handlePaymentSuccess}
+      />
 
     </div>
   );

@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      payment_methods: {
+        Row: {
+          config: Json | null
+          created_at: string
+          display_order: number
+          enabled: boolean
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          display_order?: number
+          enabled?: boolean
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          display_order?: number
+          enabled?: boolean
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          crypto_tx_hash: string | null
+          currency: string
+          id: string
+          metadata: Json | null
+          payment_method: string
+          profile_id: string
+          square_payment_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          crypto_tx_hash?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_method: string
+          profile_id: string
+          square_payment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          crypto_tx_hash?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_method?: string
+          profile_id?: string
+          square_payment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           age: number | null
@@ -97,6 +180,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_unlocks: {
+        Row: {
+          id: string
+          payment_id: string | null
+          profile_id: string
+          unlock_type: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          payment_id?: string | null
+          profile_id: string
+          unlock_type: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          payment_id?: string | null
+          profile_id?: string
+          unlock_type?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_unlocks_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_unlocks_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

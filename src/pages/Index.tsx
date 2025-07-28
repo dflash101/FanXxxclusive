@@ -38,8 +38,6 @@ const Index = () => {
               <ProfileCard
                 key={profile.id}
                 profile={profile}
-                isUnlocked={true}
-                onUnlock={() => {}}
               />
             ))}
           </div>
