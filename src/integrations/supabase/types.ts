@@ -94,6 +94,8 @@ export type Database = {
           image_urls: string[] | null
           is_unlocked: boolean | null
           location: string | null
+          locked_images: boolean[] | null
+          locked_videos: boolean[] | null
           name: string
           package_price: number | null
           photo_price: number | null
@@ -112,6 +114,8 @@ export type Database = {
           image_urls?: string[] | null
           is_unlocked?: boolean | null
           location?: string | null
+          locked_images?: boolean[] | null
+          locked_videos?: boolean[] | null
           name: string
           package_price?: number | null
           photo_price?: number | null
@@ -130,6 +134,8 @@ export type Database = {
           image_urls?: string[] | null
           is_unlocked?: boolean | null
           location?: string | null
+          locked_images?: boolean[] | null
+          locked_videos?: boolean[] | null
           name?: string
           package_price?: number | null
           photo_price?: number | null
@@ -264,7 +270,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       item_type: "photo" | "video"
