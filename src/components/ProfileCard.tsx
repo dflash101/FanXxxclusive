@@ -1,28 +1,15 @@
 
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Lock, LockOpen, Star, CreditCard, Eye } from 'lucide-react';
+import { Star, Eye } from 'lucide-react';
 import { Profile } from '@/types/Profile';
 import { Button } from '@/components/ui/button';
-import { PaymentModal } from './PaymentModal';
-import { useUnlockStatus } from '@/hooks/useUnlockStatus';
 
 interface ProfileCardProps {
   profile: Profile;
 }
 
 const ProfileCard = ({ profile }: ProfileCardProps) => {
-  const [showPayment, setShowPayment] = useState(false);
-  const { unlockStatus, refreshUnlockStatus } = useUnlockStatus(profile.id);
-
   const coverImage = profile.images.find(img => img.isCover) || profile.images[0];
-  const lockedCount = profile.images.filter(img => img.isLocked && !img.isCover).length;
-  const isUnlocked = unlockStatus.photos;
-
-  const handlePaymentSuccess = () => {
-    refreshUnlockStatus();
-    setShowPayment(false);
-  };
 
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700 hover:border-purple-500/50 transition-all duration-300 group shadow-lg shadow-purple-500/10 hover:shadow-purple-500/20">
@@ -40,12 +27,6 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
             <Star className="w-4 h-4 text-yellow-400" />
           </div>
         )}
-        {lockedCount > 0 && (
-          <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
-            <Lock className="w-4 h-4 text-red-400" />
-            <span className="text-white text-sm">{lockedCount}</span>
-          </div>
-        )}
       </div>
 
       {/* Content */}
@@ -58,59 +39,27 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
           {profile.images.slice(0, 6).map((image) => (
             <div
               key={image.id}
-              className={`relative aspect-square rounded-lg overflow-hidden ${
-                image.isLocked && !isUnlocked && !image.isCover ? 'filter blur-md' : ''
-              }`}
+              className="relative aspect-square rounded-lg overflow-hidden"
             >
               <img
                 src={image.url}
                 alt=""
                 className="w-full h-full object-cover"
               />
-              {image.isLocked && !isUnlocked && !image.isCover && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Lock className="w-6 h-6 text-white" />
-                </div>
-              )}
             </div>
           ))}
         </div>
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Link to={`/profile/${profile.id}`} className="flex-1">
+          <Link to={`/profile/${profile.id}`} className="w-full">
             <Button variant="outline" className="w-full">
               <Eye className="w-4 h-4 mr-2" />
               View Profile
             </Button>
           </Link>
-          
-          {lockedCount > 0 && !isUnlocked ? (
-            <Button
-              onClick={() => setShowPayment(true)}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105"
-            >
-              <CreditCard className="w-4 h-4 mr-2" />
-              ${profile.packagePrice?.toFixed(2) || '19.99'}
-            </Button>
-          ) : (
-            <Button variant="secondary" disabled className="flex-1 bg-green-600/20 text-green-300 border-green-600/30">
-              <LockOpen className="w-4 h-4 mr-2" />
-              Unlocked
-            </Button>
-          )}
         </div>
       </div>
-
-      <PaymentModal
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        profileId={profile.id}
-        amount={profile.packagePrice || 19.99}
-        unlockType="photos"
-        onSuccess={handlePaymentSuccess}
-      />
-
     </div>
   );
 };
