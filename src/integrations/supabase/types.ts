@@ -103,6 +103,7 @@ export type Database = {
       user_purchases: {
         Row: {
           id: string
+          payment_id: string | null
           profile_image_id: string
           purchase_price: number
           purchased_at: string
@@ -110,6 +111,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          payment_id?: string | null
           profile_image_id: string
           purchase_price?: number
           purchased_at?: string
@@ -117,6 +119,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          payment_id?: string | null
           profile_image_id?: string
           purchase_price?: number
           purchased_at?: string
