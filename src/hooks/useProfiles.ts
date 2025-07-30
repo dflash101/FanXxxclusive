@@ -58,8 +58,12 @@ export const useProfiles = () => {
       // Upload images to Supabase Storage if any
       if (imageFiles.length > 0) {
         const imagePromises = imageFiles.map(async (file, index) => {
-          // Upload file to Supabase Storage
-          const fileName = `${profileData.id}/${Date.now()}-${index}-${file.name}`;
+          // Sanitize filename to remove special characters and emojis
+          const sanitizedName = file.name
+            .replace(/[^\w.-]/g, '_') // Replace non-alphanumeric chars with underscore
+            .replace(/_{2,}/g, '_'); // Replace multiple underscores with single
+          
+          const fileName = `${profileData.id}/${Date.now()}-${index}-${sanitizedName}`;
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('profile-images')
             .upload(fileName, file);
