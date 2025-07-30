@@ -55,17 +55,27 @@ export const useProfiles = () => {
 
       if (profileError) throw profileError;
 
-      // Upload images if any
+      // Upload images to Supabase Storage if any
       if (imageFiles.length > 0) {
         const imagePromises = imageFiles.map(async (file, index) => {
-          // For now, we'll use placeholder URLs - in production you'd upload to storage
-          const imageUrl = URL.createObjectURL(file);
+          // Upload file to Supabase Storage
+          const fileName = `${profileData.id}/${Date.now()}-${index}-${file.name}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('profile-images')
+            .upload(fileName, file);
+
+          if (uploadError) throw uploadError;
+
+          // Get public URL for the uploaded file
+          const { data: { publicUrl } } = supabase.storage
+            .from('profile-images')
+            .getPublicUrl(fileName);
           
           return supabase
             .from('profile_images')
             .insert([{
               profile_id: profileData.id,
-              image_url: imageUrl,
+              image_url: publicUrl,
               is_locked: index > 0, // First image (cover) is unlocked by default
               display_order: index
             }]);

@@ -40,6 +40,11 @@
     --gradient-primary: 270 100% 80%;
     --gradient-secondary: 250 100% 75%;
     --gradient-accent: 230 100% 70%;
+    
+    /* FanXXXclusive brand colors */
+    --fanxxxclusive-primary: 270 100% 65%;
+    --fanxxxclusive-secondary: 250 100% 70%;
+    --fanxxxclusive-accent: 280 100% 75%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

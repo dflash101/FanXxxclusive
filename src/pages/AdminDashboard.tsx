@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { adminAuth } from '@/utils/adminAuth';
 import { useProfiles } from '@/hooks/useProfiles';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, LogOut, Upload, Lock, Unlock, Trash2 } from 'lucide-react';
+import { Plus, LogOut, Upload, Lock, Unlock, Trash2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
@@ -132,7 +132,17 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <Link to="/">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Back to FanXXXclusive
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-fanxxxclusive-primary to-fanxxxclusive-secondary bg-clip-text text-transparent">
+              Admin Dashboard
+            </h1>
+          </div>
           <Button onClick={handleLogout} variant="outline" size="sm" className="gap-2">
             <LogOut className="w-4 h-4" />
             Logout

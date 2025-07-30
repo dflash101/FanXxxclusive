@@ -2,21 +2,23 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile, ProfileImage } from '@/types/Profile';
+import { useUserPurchases } from '@/hooks/useUserPurchases';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Lock, CreditCard } from 'lucide-react';
+import { ArrowLeft, Lock, CreditCard, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const ProfileDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [unlockedImages, setUnlockedImages] = useState<Set<string>>(new Set());
+  const { unlockedImages, purchaseImage } = useUserPurchases();
   const { toast } = useToast();
 
   useEffect(() => {
     loadProfile();
-    loadUnlockedImages();
   }, [id]);
 
   const loadProfile = async () => {
@@ -52,24 +54,21 @@ const ProfileDetail = () => {
     }
   };
 
-  const loadUnlockedImages = () => {
-    const saved = localStorage.getItem(`unlocked_images_${id}`);
-    if (saved) {
-      setUnlockedImages(new Set(JSON.parse(saved)));
-    }
-  };
-
-  const handleUnlockImage = (imageId: string) => {
-    // Simulate payment process
-    const newUnlocked = new Set(unlockedImages);
-    newUnlocked.add(imageId);
-    setUnlockedImages(newUnlocked);
-    localStorage.setItem(`unlocked_images_${id}`, JSON.stringify([...newUnlocked]));
+  const handleUnlockImage = async (imageId: string) => {
+    const result = await purchaseImage(imageId);
     
-    toast({
-      title: "Image Unlocked!",
-      description: "Payment processed successfully.",
-    });
+    if (result.success) {
+      toast({
+        title: "Image Unlocked!",
+        description: "Payment processed successfully.",
+      });
+    } else {
+      toast({
+        title: "Purchase Failed",
+        description: "There was an error processing your payment.",
+        variant: "destructive"
+      });
+    }
   };
 
   if (loading) {
@@ -103,13 +102,21 @@ const ProfileDetail = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/">
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeft className="w-4 h-4" />
-              Back to Gallery
+              Back to FanXXXclusive
             </Button>
           </Link>
+          {!user && (
+            <Link to="/auth">
+              <Button variant="outline" size="sm" className="gap-2">
+                <User className="w-4 h-4" />
+                Sign In to Save Purchases
+              </Button>
+            </Link>
+          )}
         </div>
       </header>
 
@@ -136,7 +143,7 @@ const ProfileDetail = () => {
                       src={image.image_url}
                       alt={`${profile.name} - Image ${index + 1}`}
                       className={`w-full h-full object-cover transition-all duration-200 ${
-                        isLocked ? 'filter blur-lg scale-110' : ''
+                        isLocked ? 'filter blur-md scale-105' : ''
                       }`}
                     />
                     

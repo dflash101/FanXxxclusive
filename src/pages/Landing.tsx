@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useProfiles } from '@/hooks/useProfiles';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, User, LogOut } from 'lucide-react';
 
 const Landing = () => {
   const { profiles, loading } = useProfiles();
+  const { user, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -23,13 +25,35 @@ const Landing = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-foreground">Gallery</h1>
-          <Link to="/admin">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Admin
-            </Button>
-          </Link>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-fanxxxclusive-primary to-fanxxxclusive-secondary bg-clip-text text-transparent">
+            FanXXXclusive
+          </h1>
+          <div className="flex items-center gap-2">
+            {user ? (
+              <>
+                <span className="text-sm text-muted-foreground hidden sm:block">
+                  Welcome, {user.email}
+                </span>
+                <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <User className="w-4 h-4" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
+            <Link to="/admin">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Settings className="w-4 h-4" />
+                Admin
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
