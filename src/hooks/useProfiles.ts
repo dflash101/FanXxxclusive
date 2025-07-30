@@ -64,12 +64,17 @@ export const useProfiles = () => {
             .from('profile-images')
             .upload(fileName, file);
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            throw uploadError;
+          }
 
           // Get public URL for the uploaded file
           const { data: { publicUrl } } = supabase.storage
             .from('profile-images')
             .getPublicUrl(fileName);
+          
+          console.log('Public URL generated:', publicUrl);
           
           return supabase
             .from('profile_images')

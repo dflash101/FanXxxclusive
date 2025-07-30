@@ -80,6 +80,14 @@ const Landing = () => {
                         src={profile.cover_image_url || profile.images?.[0]?.image_url}
                         alt={profile.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        onError={(e) => {
+                          console.error('Image load error:', e.currentTarget.src);
+                          e.currentTarget.style.display = 'none';
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            parent.innerHTML = '<div class="w-full h-full bg-muted flex items-center justify-center"><span class="text-muted-foreground">Image Error</span></div>';
+                          }
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full bg-muted flex items-center justify-center">
