@@ -65,14 +65,21 @@ const ProfileDetail = () => {
     const result = await purchaseImage(imageId);
     
     if (result.success) {
-      toast({
-        title: "Image Unlocked!",
-        description: "Payment processed successfully.",
-      });
+      if (result.redirected) {
+        toast({
+          title: "Redirecting to Payment",
+          description: "Complete your purchase in the new tab.",
+        });
+      } else {
+        toast({
+          title: "Image Unlocked!",
+          description: "You now have access to this image.",
+        });
+      }
     } else {
       toast({
         title: "Purchase Failed",
-        description: "There was an error processing your payment.",
+        description: "Please try again.",
         variant: "destructive"
       });
     }

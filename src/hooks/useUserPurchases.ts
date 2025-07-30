@@ -54,30 +54,28 @@ export const useUserPurchases = () => {
   const purchaseImage = async (imageId: string) => {
     try {
       if (user) {
-        // For authenticated users, save to database
-        const { error } = await supabase
-          .from('user_purchases')
-          .insert([{
-            user_id: user.id,
-            profile_image_id: imageId,
-            purchase_price: 4.99
-          }]);
+        // Create Square checkout session
+        const { data, error } = await supabase.functions.invoke('create-square-checkout', {
+          body: {
+            profileImageId: imageId,
+            amount: 4.99,
+            redirectUrl: `${window.location.origin}/purchased?success=true&imageId=${imageId}`
+          }
+        });
 
         if (error) throw error;
 
-        // Update local state
-        const newUnlocked = new Set(unlockedImages);
-        newUnlocked.add(imageId);
-        setUnlockedImages(newUnlocked);
+        if (data.success) {
+          // Open Square checkout in a new tab
+          window.open(data.checkoutUrl, '_blank');
+          return { success: true, redirected: true };
+        } else {
+          throw new Error(data.error || 'Payment setup failed');
+        }
       } else {
-        // For guest users, save to localStorage
-        const newUnlocked = new Set(unlockedImages);
-        newUnlocked.add(imageId);
-        setUnlockedImages(newUnlocked);
-        localStorage.setItem('guest_unlocked_images', JSON.stringify([...newUnlocked]));
+        // For guest users, redirect to auth (this shouldn't happen as we redirect in UI)
+        return { success: false, error: 'Authentication required' };
       }
-
-      return { success: true };
     } catch (error) {
       console.error('Error purchasing image:', error);
       return { success: false, error };

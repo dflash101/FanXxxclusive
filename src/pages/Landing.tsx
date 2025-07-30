@@ -3,7 +3,7 @@ import { useProfiles } from '@/hooks/useProfiles';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, User, LogOut } from 'lucide-react';
+import { Settings, User, LogOut, ShoppingBag } from 'lucide-react';
 
 const Landing = () => {
   const { profiles, loading } = useProfiles();
@@ -34,6 +34,12 @@ const Landing = () => {
                 <span className="text-sm text-muted-foreground hidden sm:block">
                   Welcome, {user.email}
                 </span>
+                <Link to="/purchased">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <ShoppingBag className="w-4 h-4" />
+                    My Purchases
+                  </Button>
+                </Link>
                 <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
                   <LogOut className="w-4 h-4" />
                   Sign Out
