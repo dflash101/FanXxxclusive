@@ -76,6 +76,62 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_purchases: {
+        Row: {
+          id: string
+          profile_image_id: string
+          purchase_price: number
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          profile_image_id: string
+          purchase_price?: number
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          profile_image_id?: string
+          purchase_price?: number
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_purchases_profile_image_id_fkey"
+            columns: ["profile_image_id"]
+            isOneToOne: false
+            referencedRelation: "profile_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
