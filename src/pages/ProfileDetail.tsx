@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile, ProfileImage } from '@/types/Profile';
 import { useUserPurchases } from '@/hooks/useUserPurchases';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 const ProfileDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const { unlockedImages, purchaseImage } = useUserPurchases();
@@ -55,6 +56,12 @@ const ProfileDetail = () => {
   };
 
   const handleUnlockImage = async (imageId: string) => {
+    // Redirect guests to auth page
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
     const result = await purchaseImage(imageId);
     
     if (result.success) {
@@ -143,7 +150,7 @@ const ProfileDetail = () => {
                       src={image.image_url}
                       alt={`${profile.name} - Image ${index + 1}`}
                       className={`w-full h-full object-cover transition-all duration-200 ${
-                        isLocked ? 'filter blur-md scale-105' : ''
+                        isLocked ? 'filter blur-xl scale-105' : ''
                       }`}
                     />
                     
