@@ -12,6 +12,7 @@ serve(async (req) => {
 
   try {
     const { profileImageId, amount, redirectUrl } = await req.json()
+    console.log('Request data:', { profileImageId, amount, redirectUrl })
 
     // Get environment variables
     const squareApplicationId = Deno.env.get('SQUARE_APPLICATION_ID')
@@ -19,8 +20,20 @@ serve(async (req) => {
     const squareEnvironment = Deno.env.get('SQUARE_ENVIRONMENT') || 'production'
     const squareLocationId = Deno.env.get('SQUARE_LOCATION_ID')
 
+    console.log('Square config:', { 
+      hasApplicationId: !!squareApplicationId,
+      hasAccessToken: !!squareAccessToken,
+      environment: squareEnvironment,
+      hasLocationId: !!squareLocationId
+    })
+
     if (!squareApplicationId || !squareAccessToken || !squareLocationId) {
-      throw new Error('Missing Square configuration')
+      const missingKeys = []
+      if (!squareApplicationId) missingKeys.push('SQUARE_APPLICATION_ID')
+      if (!squareAccessToken) missingKeys.push('SQUARE_ACCESS_TOKEN')
+      if (!squareLocationId) missingKeys.push('SQUARE_LOCATION_ID')
+      console.error('Missing Square configuration keys:', missingKeys)
+      throw new Error(`Missing Square configuration: ${missingKeys.join(', ')}`)
     }
 
     // Determine Square API base URL
@@ -63,6 +76,9 @@ serve(async (req) => {
     }
 
     // Create checkout session with Square
+    console.log('Making Square API request to:', `${baseUrl}/v2/online-checkout/payment-links`)
+    console.log('Request payload:', JSON.stringify(checkoutRequest, null, 2))
+    
     const squareResponse = await fetch(`${baseUrl}/v2/online-checkout/payment-links`, {
       method: 'POST',
       headers: {
@@ -73,10 +89,13 @@ serve(async (req) => {
       body: JSON.stringify(checkoutRequest)
     })
 
+    console.log('Square API response status:', squareResponse.status)
+    
     if (!squareResponse.ok) {
       const errorData = await squareResponse.json()
       console.error('Square checkout creation failed:', errorData)
-      throw new Error('Checkout creation failed')
+      console.error('Full error response:', JSON.stringify(errorData, null, 2))
+      throw new Error(`Square API Error (${squareResponse.status}): ${JSON.stringify(errorData)}`)
     }
 
     const checkoutData = await squareResponse.json()

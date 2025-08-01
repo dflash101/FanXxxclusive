@@ -32,7 +32,7 @@ const Landing = () => {
             {user ? (
               <>
                 <span className="text-sm text-muted-foreground hidden sm:block">
-                  Welcome, {user.email}
+                  Welcome, {user.user_metadata?.full_name || user.email}
                 </span>
                 <Link to="/purchased">
                   <Button variant="ghost" size="sm" className="gap-2">
