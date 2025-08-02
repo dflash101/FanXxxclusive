@@ -26,6 +26,26 @@ const PurchasedItems = () => {
     if (user) {
       fetchPurchasedItems();
     }
+    
+    // Handle successful payment redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const imageId = urlParams.get('imageId');
+    
+    if (success === 'true' && imageId) {
+      toast({
+        title: "Payment Successful!",
+        description: "Your image has been unlocked and is now available for download.",
+      });
+      
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Refresh purchases if user is logged in
+      if (user) {
+        fetchPurchasedItems();
+      }
+    }
   }, [user]);
 
   const fetchPurchasedItems = async () => {
