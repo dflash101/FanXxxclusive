@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Lock, CreditCard, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { BulkUnlockButton } from '@/components/BulkUnlockButton';
 
 const ProfileDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -55,14 +56,14 @@ const ProfileDetail = () => {
     }
   };
 
-  const handleUnlockImage = async (imageId: string) => {
+  const handleUnlockImage = async (imageId: string, price?: number) => {
     // Redirect guests to auth page
     if (!user) {
       navigate('/auth');
       return;
     }
 
-    const result = await purchaseImage(imageId);
+    const result = await purchaseImage(imageId, price);
     
     if (result.success) {
       if (result.redirected) {
@@ -139,10 +140,17 @@ const ProfileDetail = () => {
         <div className="max-w-4xl mx-auto">
           {/* Profile Info */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-4">{profile.name}</h1>
-            {profile.description && (
-              <p className="text-lg text-muted-foreground">{profile.description}</p>
-            )}
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h1 className="text-3xl font-bold mb-2">{profile.name}</h1>
+                {profile.description && (
+                  <p className="text-lg text-muted-foreground">{profile.description}</p>
+                )}
+              </div>
+              {user && profile.images && (
+                <BulkUnlockButton images={profile.images} profileName={profile.name} />
+              )}
+            </div>
           </div>
 
           {/* Images Gallery */}
@@ -170,12 +178,12 @@ const ProfileDetail = () => {
                               Unlock this image to view
                             </p>
                             <Button 
-                              onClick={() => handleUnlockImage(image.id)}
+                              onClick={() => handleUnlockImage(image.id, image.price)}
                               size="sm"
                               className="gap-2"
                             >
                               <CreditCard className="w-4 h-4" />
-                              Unlock $4.99
+                              Unlock ${(image.price || 4.99).toFixed(2)}
                             </Button>
                           </CardContent>
                         </Card>

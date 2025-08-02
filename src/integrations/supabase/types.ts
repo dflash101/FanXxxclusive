@@ -21,6 +21,7 @@ export type Database = {
           id: string
           image_url: string
           is_locked: boolean
+          price: number
           profile_id: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           id?: string
           image_url: string
           is_locked?: boolean
+          price?: number
           profile_id: string
         }
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           id?: string
           image_url?: string
           is_locked?: boolean
+          price?: number
           profile_id?: string
         }
         Relationships: [

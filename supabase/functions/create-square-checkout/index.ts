@@ -12,8 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { profileImageId, amount } = await req.json()
-    console.log('Creating checkout for image:', profileImageId, 'amount:', amount)
+    const { profileImageId, amount, bulkPurchase, imageIds, description } = await req.json()
+    console.log('Creating checkout for:', bulkPurchase ? 'bulk purchase' : 'single image', 
+                bulkPurchase ? imageIds : profileImageId, 'amount:', amount)
 
     // Get environment variables
     const squareApplicationId = Deno.env.get('SQUARE_APPLICATION_ID')
@@ -73,8 +74,12 @@ serve(async (req) => {
     
     // Construct webhook URL for payment verification
     const webhookUrl = `${supabaseUrl}/functions/v1/square-webhook`
-    const successUrl = `${req.headers.get('origin')}/purchased?success=true&imageId=${profileImageId}&orderId=${orderId}`
-    const cancelUrl = `${req.headers.get('origin')}/profile/${profileImageId}?cancelled=true`
+    const successUrl = bulkPurchase 
+      ? `${req.headers.get('origin')}/purchased?success=true&bulk=true&orderId=${orderId}`
+      : `${req.headers.get('origin')}/purchased?success=true&imageId=${profileImageId}&orderId=${orderId}`
+    const cancelUrl = bulkPurchase
+      ? `${req.headers.get('origin')}/`
+      : `${req.headers.get('origin')}/profile/${profileImageId}?cancelled=true`
 
     // Create checkout request with proper structure
     const checkoutRequest = {
@@ -86,20 +91,30 @@ serve(async (req) => {
       },
       order: {
         location_id: squareLocationId,
-        reference_id: `img_${profileImageId}_${user.id}`,
+        reference_id: bulkPurchase 
+          ? `bulk_${user.id}_${orderId.slice(0, 8)}`
+          : `img_${profileImageId}_${user.id}`,
         line_items: [
           {
-            name: `Premium Profile Image Access`,
+            name: bulkPurchase ? `Bulk Image Access` : `Premium Profile Image Access`,
             quantity: '1',
             base_price_money: {
               amount: Math.round(amount * 100), // Convert to cents
               currency: 'USD'
             },
-            variation_name: `Image #${profileImageId.slice(0, 8)}`,
-            metadata: {
-              image_id: profileImageId,
-              user_id: user.id
-            }
+            variation_name: bulkPurchase 
+              ? `${imageIds.length} Images Bundle`
+              : `Image #${profileImageId.slice(0, 8)}`,
+            metadata: bulkPurchase 
+              ? {
+                  image_ids: imageIds.join(','),
+                  user_id: user.id,
+                  bulk_purchase: 'true'
+                }
+              : {
+                  image_id: profileImageId,
+                  user_id: user.id
+                }
           }
         ]
       },
@@ -147,15 +162,28 @@ serve(async (req) => {
 
     const checkoutData = JSON.parse(responseText)
 
-    // Store pending payment in database
-    const { error: insertError } = await supabase
-      .from('user_purchases')
-      .insert([{
+    // Store pending payment(s) in database
+    if (bulkPurchase) {
+      const purchases = imageIds.map(imageId => ({
         user_id: user.id,
-        profile_image_id: profileImageId,
-        purchase_price: amount,
-        payment_id: `pending_${orderId}` // Mark as pending
-      }])
+        profile_image_id: imageId,
+        purchase_price: amount / imageIds.length, // Split total among images
+        payment_id: `pending_${orderId}`
+      }))
+      
+      const { error: insertError } = await supabase
+        .from('user_purchases')
+        .insert(purchases)
+    } else {
+      const { error: insertError } = await supabase
+        .from('user_purchases')
+        .insert([{
+          user_id: user.id,
+          profile_image_id: profileImageId,
+          purchase_price: amount,
+          payment_id: `pending_${orderId}` // Mark as pending
+        }])
+    }
 
     if (insertError) {
       console.error('Database insert error:', insertError)

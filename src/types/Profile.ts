@@ -5,6 +5,7 @@ export interface ProfileImage {
   image_url: string;
   is_locked: boolean;
   display_order: number;
+  price?: number;
 }
 
 export interface Profile {

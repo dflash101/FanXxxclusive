@@ -51,7 +51,7 @@ export const useUserPurchases = () => {
     }
   };
 
-  const purchaseImage = async (imageId: string) => {
+  const purchaseImage = async (imageId: string, customPrice?: number) => {
     try {
       if (user) {
         // Get current session to pass auth token
@@ -65,7 +65,7 @@ export const useUserPurchases = () => {
         const { data, error } = await supabase.functions.invoke('create-square-checkout', {
           body: {
             profileImageId: imageId,
-            amount: 4.99
+            amount: customPrice || 4.99
           },
           headers: {
             Authorization: `Bearer ${session.access_token}`

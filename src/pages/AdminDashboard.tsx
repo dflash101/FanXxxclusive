@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge';
 import { Plus, LogOut, Upload, Lock, Unlock, Trash2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PriceEditor } from '@/components/PriceEditor';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -297,26 +298,35 @@ const AdminDashboard = () => {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
-                            Image {index + 1}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={image.is_locked ? "destructive" : "secondary"}>
-                              {image.is_locked ? "Locked" : "Unlocked"}
-                            </Badge>
-                            <Button
-                              onClick={() => handleToggleLock(image.id, image.is_locked)}
-                              variant="outline"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                            >
-                              {image.is_locked ? (
-                                <Unlock className="w-3 h-3" />
-                              ) : (
-                                <Lock className="w-3 h-3" />
-                              )}
-                            </Button>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">
+                              Image {index + 1}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <Badge variant={image.is_locked ? "destructive" : "secondary"}>
+                                {image.is_locked ? "Locked" : "Unlocked"}
+                              </Badge>
+                              <Button
+                                onClick={() => handleToggleLock(image.id, image.is_locked)}
+                                variant="outline"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                              >
+                                {image.is_locked ? (
+                                  <Unlock className="w-3 h-3" />
+                                ) : (
+                                  <Lock className="w-3 h-3" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="flex justify-center">
+                            <PriceEditor 
+                              imageId={image.id}
+                              currentPrice={image.price || 4.99}
+                              onPriceUpdate={() => window.location.reload()}
+                            />
                           </div>
                         </div>
                       </div>
